@@ -131,7 +131,7 @@ const textureLoader = new THREE.TextureLoader();
 let characterMaterial = null;
 
 const texWithMask = textureLoader.load(
-  '/images/with_mask.png',
+  `${import.meta.env.BASE_URL}images/with_mask.png`,
   (tex) => {
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.needsUpdate = true;
@@ -143,7 +143,7 @@ const texWithMask = textureLoader.load(
 );
 
 const texWithoutMask = textureLoader.load(
-  '/images/without_mask.png',
+  `${import.meta.env.BASE_URL}images/without_mask.png`,
   (tex) => {
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.needsUpdate = true;
