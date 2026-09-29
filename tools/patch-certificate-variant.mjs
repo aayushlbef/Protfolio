@@ -117,16 +117,41 @@ src = replaceOnce(
   'hint copy'
 );
 
-// Inject the certificate records just before the app script runs.
+// Surface runtime failures in the document itself. The certificate renders
+// inside a sandboxed, opaque-origin iframe, so its errors are not reported to
+// the parent page's console and a silent failure is otherwise invisible.
+const errorSurface = [
+  '<script>',
+  '(function(){',
+  '  function show(msg){',
+  '    var h=document.getElementById("hint");',
+  '    if(!h) return;',
+  '    h.style.opacity="1"; h.style.color="#ff8080";',
+  '    h.textContent=msg;',
+  '  }',
+  '  window.addEventListener("error",function(e){',
+  '    show("ERROR: "+(e.message||e.type));',
+  '  });',
+  '  window.addEventListener("unhandledrejection",function(e){',
+  '    var r=e.reason;',
+  '    show("ERROR: "+((r&&r.message)||r));',
+  '  });',
+  '})();',
+  '</script>',
+].join('\n');
+
 const appScript = src.lastIndexOf('<script>');
 if (appScript === -1) throw new Error('could not locate the app script tag');
 const payload = JSON.stringify(certs).replace(/</g, '\\u003c');
 src =
   src.slice(0, appScript) +
   '<script>window.__CERTS__ = ' + payload + ';</script>\n' +
+  errorSurface + '\n' +
   src.slice(appScript);
 applied++;
 console.log(`  injected ${certs.length} certificate records (${Math.round(payload.length / 1024)} KB)`);
+applied++;
+console.log('  injected error surface');
 
 fs.writeFileSync(TARGET, src, 'utf8');
 console.log(`\napplied ${applied} patches -> ${path.relative(root, TARGET)}`);

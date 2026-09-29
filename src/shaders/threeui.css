@@ -756,13 +756,16 @@ img.sunset-valley-fallback {
   opacity: 1;
 }
 
-@font-face {
-  font-family: "ThreeUI Fragment Mono";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("./fonts/fragment-mono.woff2") format("woff2");
-}
+/* Removed: the 3d-paper bundle ships no font assets, so this face
+   404s on every load. "ThreeUI Fragment Mono" now falls back to the
+   component's own font stack.
+   | @font-face {
+   |   font-family: "ThreeUI Fragment Mono";
+   |   font-style: normal;
+   |   font-weight: 400;
+   |   font-display: swap;
+   |   src: url("./fonts/fragment-mono.woff2") format("woff2");
+   | } */
 
 .article-headings-component,
 .animated-top-dock-component,

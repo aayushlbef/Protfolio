@@ -18,6 +18,10 @@ const CERTS = window.__CERTS__ || [];
 const certImgs = [];
 let curCert = 0;
 
+/* Upstream declared these immediately above drawOld(); the patch splices that
+   whole region out, so they are re-declared here. */
+const INK='#3B2A17', SEAL='#8E2B22';
+
 function loadCertImages(){
   if(!CERTS.length) return Promise.resolve();
   return Promise.all(CERTS.map(function(c){
