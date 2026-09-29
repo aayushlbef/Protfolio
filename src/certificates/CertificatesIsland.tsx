@@ -46,17 +46,32 @@ export function CertificatesIsland() {
   // unreachable from here. ThreeDPaper forwards no ref, so the frame is looked
   // up by selector; the certificate document answers on postMessage.
   const hostRef = useRef<HTMLDivElement>(null);
+  // Mirrors `current` so the message listener can read the latest value without
+  // being torn down and re-subscribed on every change.
+  const currentRef = useRef(0);
+  // The certificate the cards have asked for and the sheet has not confirmed
+  // yet. While this is set, reports from the sheet are stale by definition: the
+  // sheet is still turning towards an older request, so honouring them would
+  // drag the cards backwards and make the next click compute from the wrong one.
+  const pendingRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    currentRef.current = current;
+  }, [current]);
 
   const post = useCallback((index: number) => {
     const frame = hostRef.current?.querySelector('iframe');
-    frame?.contentWindow?.postMessage({ type: 'cert-show', index }, '*');
+    if (!frame?.contentWindow) return false;
+    frame.contentWindow.postMessage({ type: 'cert-show', index }, '*');
+    return true;
   }, []);
 
   const goTo = useCallback(
     (index: number) => {
       const next = wrap(index);
+      currentRef.current = next;
       setCurrent(next);
-      post(next);
+      if (post(next)) pendingRef.current = next;
     },
     [post]
   );
@@ -67,18 +82,37 @@ export function CertificatesIsland() {
     const onMessage = (event: MessageEvent) => {
       const data = event.data;
       if (!data || typeof data !== 'object') return;
+
       if (data.type === 'cert-ready') {
         setReady(true);
-        // The sheet may mount after the current index changed, so re-assert it.
-        // Skipped when it is already 0: the sheet starts on certificate one, and
-        // commanding it to show certificate one makes it spin a full turn.
-        setCurrent((c) => {
-          if (c !== 0) post(c);
-          return c;
-        });
-      } else if (data.type === 'cert-changed') {
-        setCurrent(wrap(Number(data.index) || 0));
+        // The sheet can mount (or remount when it scrolls out of view) long
+        // after a card was clicked, and any request sent before its document
+        // was listening is lost. It reports what it is actually showing, so
+        // only re-command when the two genuinely disagree. This also avoids
+        // spinning a fresh sheet that is already on the right certificate.
+        const shown = wrap(Number(data.index) || 0);
+        if (shown !== currentRef.current && post(currentRef.current)) {
+          pendingRef.current = currentRef.current;
+        }
+        return;
       }
+
+      if (data.type !== 'cert-changed') return;
+
+      const reported = wrap(Number(data.index) || 0);
+      const pending = pendingRef.current;
+
+      if (pending === null) {
+        // Nothing outstanding, so the sheet was turned by hand: follow it.
+        currentRef.current = reported;
+        setCurrent(reported);
+      } else if (reported === pending) {
+        // The sheet caught up with what the cards asked for.
+        pendingRef.current = null;
+        currentRef.current = reported;
+        setCurrent(reported);
+      }
+      // otherwise: a stale report from an earlier request - ignore it
     };
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);

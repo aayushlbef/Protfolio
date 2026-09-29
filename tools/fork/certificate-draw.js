@@ -60,6 +60,15 @@ function drawCert(ctx, idx){
    -------------------------------------------------------------------------- */
 let turnTarget = null;
 let turnGoal = null;
+let turnFrom = 0;
+let turnStart = 0;
+
+// A turn must take the same wall-clock time whatever the frame rate. The sheet's
+// own loop clamps dt to 0.05s, so a dt-based ease needs a fixed number of
+// frames - on a slow device that is tens of seconds and the sheet never
+// arrives, which reads as "the click did nothing". This is the duration in
+// seconds instead.
+const TURN_SECONDS = 0.55;
 
 window.addEventListener('message', function(e){
   var d = e.data;
@@ -69,9 +78,22 @@ window.addEventListener('message', function(e){
   var i = Math.round(Number(d.index));
   if(!isFinite(i)) return;
   turnTarget = ((i % n) + n) % n;
+  // Clear the latched destination so the new request re-resolves it from
+  // wherever the sheet has got to. Without this, a click arriving while a
+  // previous turn is still animating is swallowed: the sheet finishes heading
+  // for the old goal and then drops the newer request on the floor.
+  turnGoal = null;
 });
 
 window.addEventListener('load', function(){
-  parent.postMessage({ type: 'cert-ready', count: CERTS.length }, '*');
+  // Report which certificate this sheet is actually showing, so the parent can
+  // tell whether it needs to command a change. A freshly mounted sheet always
+  // starts on the first one, which is what lets the parent avoid spinning it
+  // for no reason.
+  parent.postMessage({
+    type: 'cert-ready',
+    count: CERTS.length,
+    index: curCert
+  }, '*');
 });
 

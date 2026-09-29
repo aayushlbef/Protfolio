@@ -600,8 +600,21 @@ document.querySelectorAll('button, a, .magnetic-btn, .nav-link, .persona-toggle-
    ========================================================================== */
 const clock = new THREE.Clock();
 
+// The hero is a full WebGL scene and the certificate viewer is another one.
+// Rendering both at once starves the second of them, so the hero's loop stops
+// while it is scrolled out of view and picks up where it left off on return.
+let heroVisible = true;
+if (typeof IntersectionObserver !== 'undefined') {
+  new IntersectionObserver(
+    ([entry]) => { heroVisible = entry.isIntersecting; },
+    { rootMargin: '120px' }
+  ).observe(heroFrame);
+}
+
 function animateScene() {
   requestAnimationFrame(animateScene);
+
+  if (!heroVisible || document.hidden) return;
 
   const elapsedTime = clock.getElapsedTime();
 
