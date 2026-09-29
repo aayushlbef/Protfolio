@@ -48,3 +48,30 @@ function drawCert(ctx, idx){
   ctx.font = '500 46px Inter, sans-serif';
   mid(ctx, 'certificate unavailable', TH/2);
 }
+
+/* --------------------------------------------------------------------------
+   PARENT <-> SHEET CONTROL CHANNEL
+   --------------------------------------------------------------------------
+   The component mounts this document in a sandboxed, opaque-origin iframe, so
+   the parent page cannot reach in and call anything here. postMessage is the
+   one channel that crosses an opaque origin, so the prev/next cards use it to
+   request a certificate; in the other direction the sheet reports which
+   certificate is showing so the cards stay in step when the user drags.
+   -------------------------------------------------------------------------- */
+let turnTarget = null;
+let turnGoal = null;
+
+window.addEventListener('message', function(e){
+  var d = e.data;
+  if(!d || d.type !== 'cert-show') return;
+  var n = CERTS.length;
+  if(!n) return;
+  var i = Math.round(Number(d.index));
+  if(!isFinite(i)) return;
+  turnTarget = ((i % n) + n) % n;
+});
+
+window.addEventListener('load', function(){
+  parent.postMessage({ type: 'cert-ready', count: CERTS.length }, '*');
+});
+

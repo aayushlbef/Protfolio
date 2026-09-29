@@ -1,0 +1,34 @@
+[
+    {
+        "index":  1,
+        "title":  "Certificate of Participation",
+        "issuer":  "LBEF AI \u0026 Robotics Club",
+        "detail":  "4-Day AI Learning Workshop · Jan 2026",
+        "href":  null,
+        "thumb":  "cert-01.jpg"
+    },
+    {
+        "index":  2,
+        "title":  "Certificate of Participation",
+        "issuer":  "LBEF Software Architect Club",
+        "detail":  "GitHub Hands-On Workshop · Jan 2026",
+        "href":  null,
+        "thumb":  "cert-02.jpg"
+    },
+    {
+        "index":  3,
+        "title":  "Foundations of Cybersecurity",
+        "issuer":  "Coursera · Authorized by Google",
+        "detail":  "Foundations of Cybersecurity · Jun 2026",
+        "href":  "https://coursera.org/verify/L6C77SGVQ7TW",
+        "thumb":  "cert-03.jpg"
+    },
+    {
+        "index":  4,
+        "title":  "Play It Safe: Manage Security Risks",
+        "issuer":  "Coursera · Authorized by Google",
+        "detail":  "Play It Safe: Manage Security Risks · Jun 2026",
+        "href":  "https://coursera.org/verify/ZHT4MLNPW5NA",
+        "thumb":  "cert-04.jpg"
+    }
+]

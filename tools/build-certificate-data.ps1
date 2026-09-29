@@ -5,7 +5,9 @@
 param(
   [int]$MaxWidth = 1400,
   [int]$MaxHeight = 990,
-  [int]$Quality = 82
+  [int]$Quality = 82,
+  [int]$ThumbWidth = 480,
+  [int]$ThumbHeight = 340
 )
 
 Add-Type -AssemblyName System.Drawing
@@ -39,7 +41,13 @@ $certs = @(
 $encoder = [System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() |
   Where-Object { $_.MimeType -eq 'image/jpeg' }
 
+$thumbDir = [System.IO.Path]::Combine($PSScriptRoot, '..', 'public', 'images', 'certificates')
+New-Item -ItemType Directory -Force -Path $thumbDir | Out-Null
+Get-ChildItem -Path $thumbDir -Filter 'cert-*.jpg' -ErrorAction SilentlyContinue |
+  Remove-Item -Force
+
 $out = @()
+$meta = @()
 
 foreach ($c in $certs) {
   $src = [System.IO.Path]::Combine($PSScriptRoot, '..', $c.file)
@@ -78,10 +86,10 @@ foreach ($c in $certs) {
   $ms = New-Object System.IO.MemoryStream
   $bmp.Save($ms, $encoder, $ep)
   $bytes = $ms.ToArray()
-  $bmp.Dispose()
   $ms.Dispose()
 
   $b64 = [Convert]::ToBase64String($bytes)
+  $n = $out.Count + 1
   $out += [ordered]@{
     title   = $c.title
     issuer  = $c.issuer
@@ -92,7 +100,38 @@ foreach ($c in $certs) {
     dataUri = "data:image/jpeg;base64,$b64"
   }
 
-  Write-Host ("{0,-52} {1}x{2}  {3} KB" -f $c.file, $MaxWidth, $MaxHeight, [math]::Round($bytes.Length / 1KB))
+  # A small on-disk thumbnail for the prev/next cards. These are referenced by
+  # URL from the parent page, so they must be real files rather than data URIs
+  # (which would pull the full-size scans into the main bundle). Derived before
+  # $bmp is disposed.
+  $thumbScale = [math]::Min($ThumbWidth / $MaxWidth, $ThumbHeight / $MaxHeight)
+  $tw = [int][math]::Round($MaxWidth * $thumbScale)
+  $th = [int][math]::Round($MaxHeight * $thumbScale)
+  $tbmp = New-Object System.Drawing.Bitmap($tw, $th)
+  $tg = [System.Drawing.Graphics]::FromImage($tbmp)
+  $tg.InterpolationMode = 'HighQualityBicubic'
+  $tg.SmoothingMode = 'HighQuality'
+  $tg.PixelOffsetMode = 'HighQuality'
+  $tg.DrawImage($bmp, 0, 0, $tw, $th)
+  $tg.Dispose()
+  $bmp.Dispose()
+
+  $thumbName = 'cert-{0:d2}.jpg' -f $n
+  $thumbPath = [System.IO.Path]::Combine($thumbDir, $thumbName)
+  $tbmp.Save($thumbPath, $encoder, $ep)
+  $tbmp.Dispose()
+
+  $meta += [ordered]@{
+    index  = $n
+    title  = $c.title
+    issuer = $c.issuer
+    detail = $c.detail
+    href   = $c.href
+    thumb  = $thumbName
+  }
+
+  Write-Host ("{0,-52} {1}x{2}  {3} KB   thumb {4}x{5}" -f `
+    $c.file, $MaxWidth, $MaxHeight, [math]::Round($bytes.Length / 1KB), $tw, $th)
 }
 
 $dest = [System.IO.Path]::Combine($PSScriptRoot, '..', 'src', 'certificates', 'certificates.data.json')
@@ -102,6 +141,13 @@ New-Item -ItemType Directory -Force -Path (Split-Path $dest) | Out-Null
 $json = $out | ConvertTo-Json -Depth 5
 [System.IO.File]::WriteAllText($dest, $json, (New-Object System.Text.UTF8Encoding($false)))
 
+# Metadata only, with no data URIs, so the React island can import it cheaply.
+$metaDest = [System.IO.Path]::Combine($PSScriptRoot, '..', 'src', 'certificates', 'certificates.meta.json')
+$metaJson = $meta | ConvertTo-Json -Depth 4
+[System.IO.File]::WriteAllText($metaDest, $metaJson, (New-Object System.Text.UTF8Encoding($false)))
+
 Write-Host ""
 Write-Host ("Total data URI payload: {0} KB -> {1}" -f `
-  [math]::Round((Get-Item $dest).Length / 1KB), $dest)
+  [math]::Round((Get-Item $dest).Length / 1KB), (Split-Path $dest -Leaf))
+Write-Host ("Thumbnails: {0} -> {1}" -f $thumbDir, $meta.Count)
+Write-Host ("Metadata: {0} bytes" -f (Get-Item $metaDest).Length)

@@ -208,6 +208,33 @@ function drawCert(ctx, idx){
   mid(ctx, 'certificate unavailable', TH/2);
 }
 
+/* --------------------------------------------------------------------------
+   PARENT <-> SHEET CONTROL CHANNEL
+   --------------------------------------------------------------------------
+   The component mounts this document in a sandboxed, opaque-origin iframe, so
+   the parent page cannot reach in and call anything here. postMessage is the
+   one channel that crosses an opaque origin, so the prev/next cards use it to
+   request a certificate; in the other direction the sheet reports which
+   certificate is showing so the cards stay in step when the user drags.
+   -------------------------------------------------------------------------- */
+let turnTarget = null;
+let turnGoal = null;
+
+window.addEventListener('message', function(e){
+  var d = e.data;
+  if(!d || d.type !== 'cert-show') return;
+  var n = CERTS.length;
+  if(!n) return;
+  var i = Math.round(Number(d.index));
+  if(!isFinite(i)) return;
+  turnTarget = ((i % n) + n) % n;
+});
+
+window.addEventListener('load', function(){
+  parent.postMessage({ type: 'cert-ready', count: CERTS.length }, '*');
+});
+
+
 function makeCertTexture(idx){
   idx = idx|0;
   const c = document.createElement('canvas'); c.width=CW; c.height=CH;
@@ -559,7 +586,47 @@ function frame(){
   if(certTex.length > 1){
     const n  = certTex.length;
     const ci = ((Math.round(dragYaw/(Math.PI*2)) % n) + n) % n;
-    if(ci !== curCert){ curCert = ci; mat.map = certTex[ci]; mat.needsUpdate = true; }
+    if(ci !== curCert){
+      curCert = ci; mat.map = certTex[ci]; mat.needsUpdate = true;
+      // keep the parent prev/next cards in step with a manual drag
+      parent.postMessage({ type: "cert-changed", index: ci }, "*");
+    }
+  }
+
+  // Parent-driven navigation (the prev/next cards) eases the sheet to the
+  // requested turn instead of snapping. A drag always wins.
+  if(turnTarget !== null){
+    if(dragging){
+      turnTarget = null; turnGoal = null;
+    } else {
+      if(turnGoal === null){
+        const twoPi = Math.PI*2;
+        const cur   = Math.round(dragYaw/twoPi);
+        const n2    = Math.max(1, certTex.length);
+        // Latch the destination once. Recomputing it every frame makes the
+        // target jump as dragYaw crosses a half-turn boundary, which sends
+        // the sheet oscillating between two certificates forever.
+        // Shortest way round, but never zero turns: landing on the turn the
+        // sheet already sits on would ask it to go nowhere, so re-selecting
+        // the same certificate takes it all the way round instead.
+        let d = turnTarget - cur;
+        if(d >  n2/2) d -= n2;
+        if(d < -n2/2) d += n2;
+        if(d === 0)   d = 1;
+        turnGoal = (cur + d) * twoPi;
+      }
+      // hold release above 0 so the authored settle-toward-nearest-turn
+      // easing does not fight this animation
+      release = 1;
+      const k = Math.min(1, dt*2.4);
+      dragYaw  += (turnGoal - dragYaw)*k;
+      dragPitch -= dragPitch*k;
+      velYaw = velPitch = 0;
+      if(Math.abs(turnGoal - dragYaw) < 0.0015){
+        dragYaw = turnGoal; dragPitch = 0;
+        turnTarget = null; turnGoal = null;
+      }
+    }
   }
   group.updateMatrixWorld();
 

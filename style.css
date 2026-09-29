@@ -676,9 +676,21 @@ a, button {
   color: var(--text-secondary);
 }
 
+/* prev card | 3D sheet | next card, with a caption strip underneath */
+.cert-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2.5fr) minmax(0, 1fr);
+  grid-template-areas:
+    "prev sheet next"
+    "status status status";
+  gap: 18px;
+  align-items: center;
+}
+
 /* The component mounts its own .threeui-background host in here. 3/2 keeps the
    frame close to the landscape sheet so there is little dead space. */
 .cert-paper {
+  grid-area: sheet;
   width: 100%;
   aspect-ratio: 3 / 2;
   min-height: 300px;
@@ -695,54 +707,6 @@ a, button {
   width: 100%;
   height: 100%;
   background: radial-gradient(circle at 50% 45%, #1c4436 0%, #0d1f17 70%);
-}
-
-.cert-index {
-  list-style: none;
-  margin-top: clamp(28px, 3.5vw, 44px);
-  display: grid;
-  gap: 2px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.cert-index li {
-  display: flex;
-  align-items: flex-start;
-  gap: 20px;
-  padding: 20px 4px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  transition: background 0.25s ease;
-}
-
-.cert-index li:hover {
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.cert-index-num {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--accent-green);
-  padding-top: 4px;
-  flex-shrink: 0;
-}
-
-.cert-index-body {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.cert-index-title {
-  font-size: 1.02rem;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.cert-index-meta {
-  font-family: var(--font-mono);
-  font-size: 0.74rem;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
 }
 
 .cert-index-link {
@@ -765,12 +729,134 @@ a, button {
   border-color: var(--accent-green);
 }
 
+/* Prev / next cards flanking the sheet */
+.cert-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0;
+  background: none;
+  border: none;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  opacity: 0.62;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.cert-side--prev {
+  grid-area: prev;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.cert-side--next {
+  grid-area: next;
+  align-items: flex-start;
+}
+
+.cert-side:hover,
+.cert-side:focus-visible {
+  opacity: 1;
+}
+
+.cert-side--prev:hover,
+.cert-side--prev:focus-visible {
+  transform: translateX(4px);
+}
+
+.cert-side--next:hover,
+.cert-side--next:focus-visible {
+  transform: translateX(-4px);
+}
+
+.cert-side:focus-visible {
+  outline: 2px solid var(--accent-green);
+  outline-offset: 6px;
+  border-radius: 6px;
+}
+
+.cert-side img {
+  width: 100%;
+  aspect-ratio: 1400 / 990;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #0d1f17;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
+.cert-side-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cert-side-dir {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-green);
+}
+
+.cert-side-title {
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+
+.cert-side-meta {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+
+/* Caption strip under the stage */
+.cert-status {
+  grid-area: status;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 6px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cert-status-count {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  color: var(--accent-green);
+  flex-shrink: 0;
+}
+
+.cert-status-text {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+}
+
+.cert-status-text .cert-index-link {
+  margin-top: 0;
+}
+
 /* --------------------------------------------------------------------------
    RESPONSIVENESS
    -------------------------------------------------------------------------- */
 @media (max-width: 1200px) {
   .hero-footer {
     gap: 24px;
+  }
+  .cert-stage {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
+    gap: 14px;
   }
 }
 
@@ -788,7 +874,38 @@ a, button {
     aspect-ratio: 3 / 2;
     min-height: 0;
   }
-  .cert-index li {
-    gap: 14px;
+  /* Stack the sheet above the two cards, which become a thumbnail pair. */
+  .cert-stage {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "sheet sheet"
+      "prev next"
+      "status status";
+    gap: 16px;
+  }
+  .cert-side {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    opacity: 0.85;
+  }
+  .cert-side--prev,
+  .cert-side--next {
+    align-items: center;
+    text-align: left;
+  }
+  .cert-side--prev:hover,
+  .cert-side--prev:focus-visible,
+  .cert-side--next:hover,
+  .cert-side--next:focus-visible {
+    transform: none;
+  }
+  .cert-side img {
+    width: 92px;
+    flex-shrink: 0;
+  }
+  .cert-status {
+    flex-wrap: wrap;
+    gap: 10px;
   }
 }
