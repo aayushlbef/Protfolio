@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aayush — Creative Developer & Portfolio</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <!-- Custom Glow Cursor Follower -->
+  <div class="cursor-glow" id="cursorGlow"></div>
+  <div class="custom-crosshair" id="customCrosshair"></div>
+
+  <!-- Main Hero Container Frame -->
+  <div class="hero-frame">
+    <!-- WebGL Three.js Canvas -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- Ambient Vignette & Grain Overlay -->
+    <div class="ambient-vignette"></div>
+    <div class="noise-overlay"></div>
+
+    <!-- Hero Content Overlay -->
+    <div class="hero-content">
+
+      <!-- Navigation Header -->
+      <header class="header">
+        <nav class="nav-capsule">
+          <button class="nav-link active" data-nav="home">Home</button>
+          <button class="nav-link" data-nav="collection">Collection</button>
+          <button class="nav-link" data-nav="technology">Technology</button>
+          <button class="nav-link" data-nav="clients">Clients</button>
+        </nav>
+
+        <div class="header-right">
+          <!-- Menu Button -->
+          <button class="menu-btn" id="menuBtn">
+            <span class="menu-text">Menu</span>
+            <span class="menu-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Center Hero Area -->
+      <main class="hero-main">
+        <div class="hero-left">
+          <!-- Brand / Identity Title -->
+          <div class="title-container">
+            <h1 class="hero-title" id="heroTitle">
+              <span class="char-span">A</span><span class="char-span">A</span><span class="char-span">Y</span><span class="char-span">U</span><span class="char-span">S</span><span class="char-span">H</span><span class="title-break"></span><span class="char-span">G</span><span class="char-span">U</span><span class="char-span">P</span><span class="char-span">T</span><span class="char-span">A</span>
+            </h1>
+          </div>
+
+          <!-- Description Tagline -->
+          <p class="hero-description" id="heroDesc">
+            A tech-savvy student who's hobby and passion is same to learn about new technologies and always looks forward to seek techie knowledge.
+          </p>
+
+          <!-- CTA Buttons -->
+          <div class="hero-actions">
+            <a href="#discover" class="btn-discover magnetic-btn" id="discoverBtn">
+              <span class="btn-text">Discover</span>
+              <span class="arrow-circle">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </span>
+            </a>
+
+            <a href="https://wa.me/9779767250246" target="_blank" rel="noopener" class="btn-connect magnetic-btn" id="connectBtn">
+              <span class="connect-icon">
+                <i class="fa-brands fa-whatsapp"></i>
+              </span>
+              <span class="btn-text">Connect With Us</span>
+            </a>
+          </div>
+        </div>
+
+      </main>
+
+      <!-- Bottom Bar -->
+      <footer class="hero-footer">
+        <!-- Social Icons -->
+        <div class="footer-socials">
+          <a href="https://github.com/aayushlbef" target="_blank" rel="noopener" class="social-btn" title="GitHub / Community">
+            <i class="fa-brands fa-github"></i>
+          </a>
+          <a href="https://x.com/Aayush2326v" target="_blank" rel="noopener" class="social-btn" title="X / Twitter">
+            <i class="fa-brands fa-x-twitter"></i>
+          </a>
+          <a href="https://www.linkedin.com/in/guptakaayush/" target="_blank" rel="noopener" class="social-btn" title="LinkedIn">
+            <i class="fa-brands fa-linkedin-in"></i>
+          </a>
+          <a href="#explore" class="social-btn arrow-btn" title="External link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="7" y1="17" x2="17" y2="7"></line>
+              <polyline points="7 7 17 7 17 17"></polyline>
+            </svg>
+          </a>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+
+  <!-- Interactive Menu Drawer -->
+  <div class="menu-overlay" id="menuOverlay">
+    <div class="menu-drawer">
+      <div class="drawer-header">
+        <span class="drawer-title">NAVIGATION INDEX</span>
+        <button class="drawer-close" id="drawerClose">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <ul class="drawer-links">
+        <li><a href="#home" class="drawer-link"><span class="d-num">01</span> HOME</a></li>
+        <li><a href="#collection" class="drawer-link"><span class="d-num">02</span> COLLECTION</a></li>
+        <li><a href="#technology" class="drawer-link"><span class="d-num">03</span> TECHNOLOGY</a></li>
+        <li><a href="#clients" class="drawer-link"><span class="d-num">04</span> CLIENTS</a></li>
+        <li><a href="#about" class="drawer-link"><span class="d-num">05</span> ABOUT AAYUSH</a></li>
+      </ul>
+      <div class="drawer-footer">
+        <span>PORTFOLIO // 2026</span>
+        <span>AAYUSH PORTFOLIO</span>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/main.js"></script>
+</body>
+</html>
