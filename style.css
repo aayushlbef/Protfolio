@@ -27,10 +27,19 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-html, body {
+html {
   width: 100%;
-  height: 100%;
-  overflow: hidden;
+  background-color: var(--bg-frame);
+  scroll-behavior: smooth;
+}
+
+body {
+  width: 100%;
+  min-height: 100%;
+  /* The page now scrolls to reach the certificates section, so the hero is no
+     longer a fixed single screen. X is still clipped to avoid a scrollbar
+     from the cursor glow bleeding past the viewport. */
+  overflow-x: hidden;
   background-color: var(--bg-frame);
   font-family: var(--font-main);
   color: var(--text-primary);
@@ -118,7 +127,8 @@ html, body {
 .hero-frame {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: 100vh;
+  height: 100svh;
   background: radial-gradient(circle at 75% 45%, #245440 0%, #153326 45%, #0a1c13 85%);
   overflow: hidden;
 }
@@ -619,6 +629,142 @@ a, button {
 }
 
 /* --------------------------------------------------------------------------
+   CERTIFICATES SECTION
+   -------------------------------------------------------------------------- */
+.certificates {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  padding: clamp(72px, 10vw, 140px) clamp(24px, 5vw, 64px);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(36, 84, 64, 0.55) 0%, transparent 60%),
+    linear-gradient(180deg, #0a1c13 0%, #071410 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.cert-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.cert-head {
+  max-width: 640px;
+  margin-bottom: clamp(32px, 4vw, 52px);
+}
+
+.cert-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-green);
+  margin-bottom: 14px;
+}
+
+.cert-title {
+  font-family: var(--font-main);
+  font-size: clamp(2.4rem, 5.2vw, 4rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.015em;
+  margin-bottom: 18px;
+}
+
+.cert-lede {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* The component mounts its own .threeui-background host in here */
+.cert-paper {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  min-height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
+  /* The sheet is dragged directly, so it opts out of the custom cursor that
+     the rest of the site hides. */
+  cursor: auto;
+}
+
+.cert-paper-fallback {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 45%, #1c4436 0%, #0d1f17 70%);
+}
+
+.cert-index {
+  list-style: none;
+  margin-top: clamp(28px, 3.5vw, 44px);
+  display: grid;
+  gap: 2px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cert-index li {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 20px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.25s ease;
+}
+
+.cert-index li:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.cert-index-num {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--accent-green);
+  padding-top: 4px;
+  flex-shrink: 0;
+}
+
+.cert-index-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.cert-index-title {
+  font-size: 1.02rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.cert-index-meta {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.cert-index-link {
+  align-self: flex-start;
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--accent-green);
+  border: 1px solid rgba(60, 208, 131, 0.35);
+  border-radius: 9999px;
+  padding: 4px 12px;
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.cert-index-link:hover {
+  background: rgba(60, 208, 131, 0.12);
+  border-color: var(--accent-green);
+}
+
+/* --------------------------------------------------------------------------
    RESPONSIVENESS
    -------------------------------------------------------------------------- */
 @media (max-width: 1200px) {
@@ -636,5 +782,12 @@ a, button {
   }
   .menu-btn {
     display: flex;
+  }
+  .cert-paper {
+    aspect-ratio: 4 / 5;
+    min-height: 0;
+  }
+  .cert-index li {
+    gap: 14px;
   }
 }
