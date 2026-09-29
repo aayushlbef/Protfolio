@@ -59,6 +59,36 @@ src = replaceOnce(
 );
 src = replaceOnce(src, '  drawOld(ctx);', '  drawCert(ctx, idx);', 'makeCertTexture() body');
 
+// Retarget the sheet to landscape. The scans are landscape, so the authored
+// portrait geometry would letterbox them and leave bare paper visible.
+// Canvas stays 1.4x the authoring grid, so CW/TW and CH/TH remain identical.
+src = replaceOnce(
+  src,
+  'const TW = 1200, TH = 1656;',
+  'const TW = 1400, TH = 990;',
+  'authoring grid -> landscape'
+);
+src = replaceOnce(
+  src,
+  'const CW = 1400, CH = 1932;',
+  'const CW = 1960, CH = 1386;',
+  'canvas size -> landscape'
+);
+src = replaceOnce(
+  src,
+  'const SW = 2.30, SH = 2.72;',
+  'const SW = 2.30, SH = 1.626;',
+  'sheet geometry -> landscape'
+);
+// A shorter sheet makes the old height term non-binding, so the width cap now
+// governs; 0.72 keeps the sheet clear of the viewport top and bottom.
+src = replaceOnce(
+  src,
+  'group.scale.setScalar(Math.min(visH*0.735/SH, visW*wCap/SW));',
+  'group.scale.setScalar(Math.min(visH*0.72/SH, visW*wCap/SW));',
+  'fit scale for landscape'
+);
+
 // Preload the scans before the first texture is built.
 src = replaceOnce(
   src,

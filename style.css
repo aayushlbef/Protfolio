@@ -676,11 +676,12 @@ a, button {
   color: var(--text-secondary);
 }
 
-/* The component mounts its own .threeui-background host in here */
+/* The component mounts its own .threeui-background host in here. 3/2 keeps the
+   frame close to the landscape sheet so there is little dead space. */
 .cert-paper {
   width: 100%;
-  aspect-ratio: 16 / 10;
-  min-height: 340px;
+  aspect-ratio: 3 / 2;
+  min-height: 300px;
   border-radius: 20px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -784,7 +785,7 @@ a, button {
     display: flex;
   }
   .cert-paper {
-    aspect-ratio: 4 / 5;
+    aspect-ratio: 3 / 2;
     min-height: 0;
   }
   .cert-index li {

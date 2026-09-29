@@ -9,9 +9,11 @@ import os from 'node:os';
 import path from 'node:path';
 
 const CHROME = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-const [, , url, outPng, waitMsArg, evalExpr, afterMsArg, dragArg] = process.argv;
+const [, , url, outPng, waitMsArg, evalExpr, afterMsArg, dragArg, wArg, hArg] = process.argv;
 const waitMs = Number(waitMsArg || 20000);
 const afterMs = Number(afterMsArg || 4000);
+const winW = Number(wArg || 1200);
+const winH = Number(hArg || 950);
 // Optional horizontal drag across the sheet, to exercise the drag-to-turn
 // paging. Real CDP input is required: the listener lives on the inner window of
 // an opaque-origin iframe, so synthetic events on the iframe element would not
@@ -28,7 +30,7 @@ const chrome = spawn(CHROME, [
   '--hide-scrollbars',
   `--remote-debugging-port=${port}`,
   `--user-data-dir=${profile}`,
-  '--window-size=1200,950',
+  '--window-size=' + winW + ',' + winH,
   url
 ], { stdio: 'ignore' });
 

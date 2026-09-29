@@ -4,6 +4,7 @@
 # cross-origin, and a data URI has no such dependency.
 param(
   [int]$MaxWidth = 1400,
+  [int]$MaxHeight = 990,
   [int]$Quality = 82
 )
 
@@ -48,21 +49,25 @@ foreach ($c in $certs) {
   }
 
   $img = [System.Drawing.Image]::FromFile((Resolve-Path -LiteralPath $src).Path)
-  $w = $img.Width
-  $h = $img.Height
-  if ($w -gt $MaxWidth) {
-    $h = [int][math]::Round($img.Height * ($MaxWidth / $img.Width))
-    $w = $MaxWidth
-  }
+
+  # Every scan is normalised onto the same landscape sheet (MaxWidth x
+  # MaxHeight) and centred on white, so the 3D sheet can be exactly that
+  # aspect and the image covers it edge to edge with no paper showing. All four
+  # certificates have light backgrounds, so the padding is invisible.
+  $scale = [math]::Min($MaxWidth / $img.Width, $MaxHeight / $img.Height)
+  $w = [int][math]::Round($img.Width * $scale)
+  $h = [int][math]::Round($img.Height * $scale)
+  $dx = [int][math]::Round(($MaxWidth - $w) / 2)
+  $dy = [int][math]::Round(($MaxHeight - $h) / 2)
 
   # Flatten onto white so PNG transparency does not become a black JPEG
-  $bmp = New-Object System.Drawing.Bitmap($w, $h)
+  $bmp = New-Object System.Drawing.Bitmap($MaxWidth, $MaxHeight)
   $g = [System.Drawing.Graphics]::FromImage($bmp)
   $g.Clear([System.Drawing.Color]::White)
   $g.InterpolationMode = 'HighQualityBicubic'
   $g.SmoothingMode = 'HighQuality'
   $g.PixelOffsetMode = 'HighQuality'
-  $g.DrawImage($img, 0, 0, $w, $h)
+  $g.DrawImage($img, $dx, $dy, $w, $h)
   $g.Dispose()
   $img.Dispose()
 
@@ -82,12 +87,12 @@ foreach ($c in $certs) {
     issuer  = $c.issuer
     detail  = $c.detail
     href    = $c.href
-    width   = $w
-    height  = $h
+    width   = $MaxWidth
+    height  = $MaxHeight
     dataUri = "data:image/jpeg;base64,$b64"
   }
 
-  Write-Host ("{0,-52} {1}x{2}  {3} KB" -f $c.file, $w, $h, [math]::Round($bytes.Length / 1KB))
+  Write-Host ("{0,-52} {1}x{2}  {3} KB" -f $c.file, $MaxWidth, $MaxHeight, [math]::Round($bytes.Length / 1KB))
 }
 
 $dest = [System.IO.Path]::Combine($PSScriptRoot, '..', 'src', 'certificates', 'certificates.data.json')
