@@ -845,6 +845,274 @@ a, button {
 }
 
 /* --------------------------------------------------------------------------
+   ABOUT SECTION
+   -------------------------------------------------------------------------- */
+.about {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  padding: clamp(72px, 10vw, 140px) clamp(24px, 5vw, 64px);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(36, 84, 64, 0.55) 0%, transparent 60%),
+    linear-gradient(180deg, #0a1c13 0%, #071410 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+
+/* Wide accent bloom bleeding in from the top-left, plus the same film grain the
+   hero wears - keeps the section from reading as a flat panel. */
+.about-ambient {
+  position: absolute;
+  top: -30%;
+  left: -12%;
+  width: 62%;
+  height: 78%;
+  background: radial-gradient(circle, rgba(60, 208, 131, 0.16) 0%, transparent 62%);
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+.about-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='aboutNoise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23aboutNoise)'/%3E%3C/svg%3E");
+}
+
+.about-inner {
+  position: relative;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.about-head {
+  max-width: 640px;
+  margin-bottom: clamp(36px, 5vw, 60px);
+}
+
+.about-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-green);
+  margin-bottom: 14px;
+}
+
+.about-eyebrow-mark {
+  width: 18px;
+  height: 2px;
+  background: var(--accent-green);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.about-title {
+  font-family: var(--font-main);
+  font-size: clamp(2.4rem, 5.2vw, 4rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.015em;
+  margin-bottom: 18px;
+}
+
+/* Letter spans so the title can be staggered in one character at a time.
+   Deliberately not .char-span - the hero's entrance timeline already targets
+   that selector globally and would fight this one for the same properties. */
+.about-char {
+  display: inline-block;
+}
+
+.about-space {
+  display: inline-block;
+  width: 0.3em;
+}
+
+.about-lede {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* Photo plate on the left, biography on the right. The media column is the
+   narrow one because the photo is a 9:16 portrait - a wider column would make
+   the frame taller than the whole text column. */
+.about-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+  gap: clamp(28px, 4.5vw, 60px);
+  align-items: center;
+}
+
+.about-media {
+  position: relative;
+  margin: 0;
+}
+
+/* Nothing but a clip: the photo is the element, so this carries no border, no
+   fill and no shadow - just the rounded corners the canvas is trimmed to. The
+   ratio is the photo's own 9:16, which is what keeps the cover fit in the
+   shader from cropping anything off. */
+.about-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--bg-frame);
+}
+
+#about-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.about-scanline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -8%;
+  height: 2px;
+  z-index: 3;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(60, 208, 131, 0.95), transparent);
+  box-shadow: 0 0 18px rgba(60, 208, 131, 0.75);
+}
+
+.about-paragraph {
+  font-size: 1.04rem;
+  line-height: 1.75;
+  color: var(--text-secondary);
+  /* The site hides the native cursor, but a bio is the one block of prose here
+     worth being able to select and copy. */
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+}
+
+/* Word spans produced by about.js for the staggered reveal. Inline-block so
+   each word can be translated independently without breaking the line flow. */
+.about-word {
+  display: inline-block;
+}
+
+.about-focus {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.about-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 15px;
+  background: var(--bg-card);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 9999px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  transition: background 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.about-tag:hover {
+  background: rgba(60, 208, 131, 0.12);
+  border-color: rgba(60, 208, 131, 0.45);
+  color: var(--text-primary);
+}
+
+.about-facts {
+  margin-top: 32px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.about-fact {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  padding: 13px 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.about-fact dt {
+  flex-shrink: 0;
+  width: 96px;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-green);
+}
+
+.about-fact dd {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.about-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.about-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px;
+  background: var(--bg-card);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 9999px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: background 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.about-btn--primary {
+  background: rgba(60, 208, 131, 0.14);
+  border-color: rgba(60, 208, 131, 0.4);
+}
+
+.about-btn:hover {
+  background: rgba(60, 208, 131, 0.16);
+  border-color: var(--accent-green);
+  box-shadow: 0 0 26px rgba(60, 208, 131, 0.22);
+}
+
+/* Applied by about.js before the reveal runs, so the section never flashes in
+   fully formed for a frame. Removed the moment the timeline starts. */
+.about--pre [data-reveal],
+.about--pre .about-char,
+.about--pre .about-word {
+  opacity: 0;
+}
+
+/* --------------------------------------------------------------------------
    RESPONSIVENESS
    -------------------------------------------------------------------------- */
 @media (max-width: 1200px) {
@@ -904,5 +1172,32 @@ a, button {
   .cert-status {
     flex-wrap: wrap;
     gap: 10px;
+  }
+  .about-grid {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+  /* The plate leads on narrow screens, so it is centred and capped rather than
+     left hanging at full width. */
+  .about-media {
+    max-width: 300px;
+    margin: 0 auto;
+  }
+  .about-head {
+    max-width: 100%;
+  }
+  .about-paragraph {
+    font-size: 0.98rem;
+    line-height: 1.72;
+  }
+  .about-fact {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .about-fact dt {
+    width: auto;
+  }
+  .about-actions {
+    justify-content: center;
   }
 }

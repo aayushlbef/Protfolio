@@ -507,6 +507,15 @@ menuOverlay.addEventListener('click', (e) => {
   }
 });
 
+// A drawer link scrolls the page, so the drawer has to get out of the way -
+// otherwise it stays open over the section it just navigated to.
+document.querySelectorAll('.drawer-link').forEach((link) => {
+  link.addEventListener('click', () => {
+    playSfx('click');
+    menuOverlay.classList.remove('open');
+  });
+});
+
 // ESC key to close modals
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {

@@ -120,6 +120,91 @@
     </div>
   </div>
 
+  <!-- About Section -->
+  <section class="about" id="about" aria-labelledby="aboutHeading">
+    <div class="about-ambient" aria-hidden="true"></div>
+    <div class="about-grain" aria-hidden="true"></div>
+
+    <div class="about-inner">
+      <header class="about-head">
+        <p class="about-eyebrow" data-reveal>
+          <span class="about-eyebrow-mark"></span>
+          Profile // Identity
+        </p>
+
+        <h2 class="about-title" id="aboutHeading" data-reveal>
+          <span class="about-char">A</span><span class="about-char">b</span><span class="about-char">o</span><span class="about-char">u</span><span class="about-char">t</span><span class="about-space"></span><span class="about-char">M</span><span class="about-char">e</span>
+        </h2>
+
+        <p class="about-lede" data-reveal>
+          Building software, breaking systems, and writing down the interesting
+          parts — from Kathmandu, Nepal.
+        </p>
+      </header>
+
+      <div class="about-grid">
+        <figure class="about-media" data-reveal>
+          <div class="about-frame" id="aboutFrame">
+            <canvas id="about-canvas" aria-hidden="true"></canvas>
+            <span class="about-scanline" aria-hidden="true"></span>
+          </div>
+        </figure>
+
+        <div class="about-body">
+          <p class="about-paragraph" id="aboutParagraph">
+            I am Aayush Kumar Gupta, a Computer Science and IT student at Lord
+            Buddha Education Foundation (affiliated with Asia Pacific University)
+            based in Kathmandu, Nepal. Driven by a passion for building robust
+            software and understanding modern system architectures, my technical
+            focus spans cross-platform application development, network security,
+            and digital forensics. From engineering desktop applications in C++
+            and Python—such as the open-source Nepali Date Widget—to exploring
+            vulnerability analysis and system integrity, I bridge code craft with
+            core security fundamentals. Beyond engineering, I share hardware
+            insights and tech tutorials through my YouTube channel, GupLogy,
+            constantly aiming to turn complex technical challenges into clean,
+            open-source solutions.
+          </p>
+
+          <ul class="about-focus" id="aboutFocus">
+            <li class="about-tag">Cross-Platform Apps</li>
+            <li class="about-tag">Network Security</li>
+            <li class="about-tag">Digital Forensics</li>
+            <li class="about-tag">C++ / Python</li>
+            <li class="about-tag">System Architecture</li>
+            <li class="about-tag">Open Source</li>
+          </ul>
+
+          <dl class="about-facts">
+            <div class="about-fact" data-reveal>
+              <dt>Study</dt>
+              <dd>CS &amp; IT — Lord Buddha Education Foundation</dd>
+            </div>
+            <div class="about-fact" data-reveal>
+              <dt>Based In</dt>
+              <dd>Kathmandu, Nepal</dd>
+            </div>
+            <div class="about-fact" data-reveal>
+              <dt>Channel</dt>
+              <dd>GupLogy — YouTube</dd>
+            </div>
+          </dl>
+
+          <div class="about-actions" data-reveal>
+            <a class="about-btn about-btn--primary" href="https://github.com/aayushlbef" target="_blank" rel="noopener">
+              <i class="fa-brands fa-github"></i>
+              <span>GitHub</span>
+            </a>
+            <a class="about-btn" href="https://wa.me/9779767250246" target="_blank" rel="noopener">
+              <i class="fa-brands fa-whatsapp"></i>
+              <span>Let's Talk</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Certificates Section -->
   <section class="certificates" id="certificates" aria-labelledby="certHeading">
     <div class="cert-inner">
@@ -162,6 +247,7 @@
   </div>
 
   <script type="module" src="/main.js"></script>
+  <script type="module" src="/about.js"></script>
   <script type="module" src="/src/certificates/index.tsx"></script>
 </body>
 </html>
