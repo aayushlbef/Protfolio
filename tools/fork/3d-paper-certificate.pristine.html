@@ -39,11 +39,7 @@ body{
 #grain2{opacity:.02}
 #vig{position:fixed;inset:0;z-index:5;pointer-events:none;
      background:radial-gradient(120% 90% at 50% 45%,rgba(0,0,0,0) 42%,rgba(0,0,0,.52) 100%)}
-#hint{position:fixed;left:0;right:0;bottom:64px;z-index:6;pointer-events:none;
-      text-align:center;font-size:10px;letter-spacing:.22em;text-transform:uppercase;
-      color:rgba(242,242,240,.30);opacity:0;transition:opacity .8s ease}
-#hint b{font-weight:500;color:rgba(242,242,240,.58)}
-@media(hover:none){ #hint .ptr{display:none} }
+
 
 </style>
 
@@ -54,7 +50,7 @@ body{
 <div id="grain"></div>
 <div id="grain2"></div>
 <div id="vig"></div>
-<div id="hint"><b>Drag</b> to turn it<span class="ptr"> &nbsp;·&nbsp; <b>Hover</b> to light it</span></div>
+
 
 <script>/**
  * @license
@@ -444,8 +440,7 @@ let velYaw=0, velPitch=0, prevYaw=0, prevPitch=0;
 let lastPX=0, lastPY=0, moved=0, overSheet=false, hover=0, hoverTarget=0;
 let quad=null, cursorNow='';
 const mouse = {x:0,y:0,tx:0,ty:0};
-const hintEl = document.getElementById('hint');
-let hintUsed=false;
+
 
 // JS mirror of the GLSL bend, corners only — enough to know whether the
 // pointer is on the paper
@@ -486,7 +481,7 @@ function inQuad(px,py){
   }
   return true;
 }
-function useHint(){ hintUsed=true; hintEl.style.opacity='0'; }
+
 
 window.addEventListener('pointermove', e=>{
   mouse.tx = (e.clientX/window.innerWidth  - 0.5)*2;
@@ -496,7 +491,7 @@ window.addEventListener('pointermove', e=>{
     lastPX=e.clientX; lastPY=e.clientY; moved+=Math.abs(dx)+Math.abs(dy);
     dragYaw   += dx*0.0060;                   // glass prints through, so a
     dragPitch  = clamp(dragPitch - dy*0.0045, -0.60, 0.60);  // full turn is honest
-    if(moved>40) useHint();
+
     return;
   }
   overSheet = inQuad(e.clientX,e.clientY);
@@ -546,7 +541,7 @@ function frame(){
   intro += (1 - intro) * Math.min(1, dt*1.9);
   mat.opacity = intro;
   halo.material.opacity = intro*0.55;
-  if(intro > 0.7 && !hintUsed) hintEl.style.opacity='1';
+
 
   if(dragging){
     // measure the throw as an angular velocity, smoothed over a few frames

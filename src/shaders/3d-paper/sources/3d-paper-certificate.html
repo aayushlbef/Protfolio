@@ -8,7 +8,11 @@
 <style>
 :root{ --bg:#08080a; --ink:#f2f2f0; --dim:rgba(242,242,240,.38); }
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;background:var(--bg);overflow:hidden;
+/* The certificate variant sits directly on the page instead of in its own dark
+   frame: an opaque page here would draw a black box around the sheet. The WebGL
+   canvas below is already alpha:true, so leaving the document background
+   unpainted lets the stage background through. */
+html,body{height:100%;background:transparent;overflow:hidden;
   touch-action:none;overscroll-behavior:none}
 body{
   color:var(--ink);
@@ -17,44 +21,25 @@ body{
 }
 .mono{font-size:10px;letter-spacing:.2em;text-transform:uppercase;font-weight:500;color:var(--dim)}
 
-/* ---------- background: one giant word, nothing else ---------- */
-#bg{position:fixed;inset:0;z-index:1;overflow:hidden}
-#bg h1{
-  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  line-height:.8;white-space:nowrap;
-  -webkit-user-select:none;user-select:none;
-  font-family:"EB Garamond",Georgia,serif;font-weight:500;letter-spacing:-.015em;
-  font-size:clamp(104px,20.5vw,470px);color:rgba(242,232,210,.13);
-}
-
-/* ---------- layers over it ---------- */
-#dof{position:fixed;inset:-30px;z-index:2;pointer-events:none;
-     backdrop-filter:blur(2.4px);-webkit-backdrop-filter:blur(2.4px);
-     background:rgba(8,8,10,.05)}
+/* ---------- layers ---------- */
+/* There is no wordmark behind the sheet any more. With the frame transparent it
+   stopped reading as a watermark and started reading as a stray headline laid
+   over the section - most obvious on the two small cards, where the giant
+   serif AAYUSH was larger than the certificate on it. */
+#dof,#grain,#grain2,#vig,#bg{display:none}
 #gl{position:fixed;top:0;left:0;width:100%;height:100%;z-index:3;
     pointer-events:none;display:block}
-#grain,#grain2{position:fixed;inset:0;z-index:4;pointer-events:none;
-    background-repeat:repeat;background-size:160px 160px}
-#grain{opacity:.05;mix-blend-mode:overlay}
-#grain2{opacity:.02}
-#vig{position:fixed;inset:0;z-index:5;pointer-events:none;
-     background:radial-gradient(120% 90% at 50% 45%,rgba(0,0,0,0) 42%,rgba(0,0,0,.52) 100%)}
-#hint{position:fixed;left:0;right:0;bottom:64px;z-index:6;pointer-events:none;
-      text-align:center;font-size:10px;letter-spacing:.22em;text-transform:uppercase;
-      color:rgba(242,242,240,.30);opacity:0;transition:opacity .8s ease}
-#hint b{font-weight:500;color:rgba(242,242,240,.58)}
-@media(hover:none){ #hint .ptr{display:none} }
+
+
 
 </style>
-
-<div id="bg"><h1>AAYUSH</h1></div>
 
 <div id="dof"></div>
 <canvas id="gl"></canvas>
 <div id="grain"></div>
 <div id="grain2"></div>
 <div id="vig"></div>
-<div id="hint"><b>Drag</b> to turn it<span class="ptr"> &nbsp;·&nbsp; <b>Hover</b> to light it &nbsp;·&nbsp; keep turning for more</span></div>
+
 
 <script>/**
  * @license
@@ -170,7 +155,9 @@ function signature(ctx,x,y,s,seed,color,lw){
    yellow sheet framing the scan, which read as a fake layer. It is gone now:
    the scan is the whole sheet, and the die-cut rounded corners from makeCertTexture
    still give it a physical edge. The bend shader, MeshPhysicalMaterial, sheen,
-   rim light, drag physics and hover light are all untouched upstream code.
+   rim light and drag physics are untouched upstream code. The one lighting
+   change is the cursor light, which had to go - see the note by the scene
+   lights.
    ========================================================================== */
 
 /* Certificate records are injected by tools/patch-certificate-variant.mjs */
@@ -178,16 +165,64 @@ const CERTS = window.__CERTS__ || [];
 const certImgs = [];
 let curCert = 0;
 
+function ensureCertImage(i){
+  if(certImgs[i]) return Promise.resolve(certImgs[i]);
+  const c = CERTS[i];
+  if(!c) return Promise.resolve(null);
+  return new Promise(function(res){
+    const im = new Image();
+    im.onload = function(){ certImgs[i] = im; res(im); };
+    im.onerror = function(){ res(null); };
+    im.src = c.dataUri;
+  });
+}
+
 function loadCertImages(){
   if(!CERTS.length) return Promise.resolve();
-  return Promise.all(CERTS.map(function(c){
-    return new Promise(function(res){
-      const im = new Image();
-      im.onload = function(){ res(im); };
-      im.onerror = function(){ res(null); };
-      im.src = c.dataUri;
-    });
-  })).then(function(list){ certImgs.splice(0, certImgs.length); list.forEach(function(i){ certImgs.push(i); }); });
+  // A passive copy shows one certificate at a time, so nothing is decoded here.
+  // The scans are megabytes of base64 JPEG, and decoding all four for two
+  // thumbnails nobody can turn through would be the most expensive thing on the
+  // page. cert-set decodes them on demand instead, one at a time.
+  if(PASSIVE) return Promise.resolve();
+  return Promise.all(CERTS.map(function(_, i){ return ensureCertImage(i); }))
+    .then(function(list){ certImgs.splice(0, certImgs.length); list.forEach(function(im){ certImgs.push(im || null); }); });
+}
+
+// certificate index -> valid slot in CERTS
+function wrapCert(i){
+  const n = CERTS.length || 1;
+  i = Math.round(Number(i) || 0);
+  return ((i % n) + n) % n;
+}
+
+/* A passive copy is told which certificate to show, and only its texture changes.
+   The frame, the WebGL context, the geometry and the environment map were all
+   built once, and none of that is repeated per certificate.
+
+   The request can easily arrive before boot() has finished - boot waits on fonts,
+   and the host posts the moment the frame loads. Applying it immediately would be
+   undone: boot rebuilds the texture afterwards and puts the placeholder back. So
+   the request is recorded and replayed once there is something to update. */
+let booted = false;
+let wantPassive = 0;
+
+function applyPassiveCert(i){
+  if(i === curCert || !certTex.length) return;
+  ensureCertImage(i).then(function(im){
+    // the host may have asked for something else while this was decoding
+    if(!im || i !== wantPassive) return;
+    const old = certTex[0];
+    const t = makeCertTexture(i);
+    certTex[0] = t;
+    if(old) old.dispose();
+    mat.map = t; mat.needsUpdate = true; curCert = i;
+  });
+}
+
+function setPassiveCert(i){
+  wantPassive = wrapCert(i);
+  if(!booted) return;
+  applyPassiveCert(wantPassive);
 }
 
 function drawCert(ctx, idx){
@@ -229,9 +264,43 @@ let turnStart = 0;
 // seconds instead.
 const TURN_SECONDS = 0.55;
 
+/* The host can ask for a non-interactive copy of this sheet - the prev/next
+   cards are the same paper, moving the same way, just not grabbable. It says so
+   by appending a __CERT_INIT__ script to this document. That lands after the
+   block above has already run, so the options are read lazily: by the time
+   boot() executes, every script on the page has been parsed and executed. */
+const initOpts = () => window.__CERT_INIT__ || {};
+let PASSIVE = false;
+
+// Which certificate the sheet is showing, as a function of its angle - the
+// unwrapped turn number, so callers that need a 0..n-1 index wrap it themselves.
+//
+// The 0.75 offset is the whole trick. Rounding to the nearest turn put every
+// boundary a half turn from a rest position, which is exactly where the paper
+// is face-on showing its back, so the scan swapped in full view: drag towards
+// the next certificate and the artwork changed on you while you were still
+// holding it, and changed back if you reversed. Offsetting by three quarters
+// moves every boundary a quarter turn off, where the paper is edge-on and has
+// no width on screen, so the swap happens where it cannot be seen. Rest angles
+// are still whole turns, so a parked sheet is always face-on on a certificate.
+const turnIndexAt = (yaw) => Math.floor(yaw/(Math.PI*2) + 0.75);
+
 window.addEventListener('message', function(e){
   var d = e.data;
-  if(!d || d.type !== 'cert-show') return;
+  if(!d || typeof d !== 'object') return;
+
+  // Which certificate a passive copy should show. Answered without a reload, so
+  // stepping through the set costs one texture swap rather than a whole document.
+  if(d.type === 'cert-set'){
+    setPassiveCert(d.index);
+    return;
+  }
+
+  if(d.type !== 'cert-show') return;
+  // A passive copy is a fixed thumbnail, and it holds a single texture, so
+  // there is nothing coherent it could turn to. Ignore the request outright
+  // rather than let it spin a card the viewer is not meant to be able to move.
+  if(PASSIVE) return;
   var n = CERTS.length;
   if(!n) return;
   var i = Math.round(Number(d.index));
@@ -248,7 +317,11 @@ window.addEventListener('load', function(){
   // Report which certificate this sheet is actually showing, so the parent can
   // tell whether it needs to command a change. A freshly mounted sheet always
   // starts on the first one, which is what lets the parent avoid spinning it
-  // for no reason.
+  // for no reason. A passive copy has no parent to talk to and never navigates,
+  // so announcing itself would only be noise. This reads the options rather than
+  // the PASSIVE flag, because load can fire before boot() has had a chance to
+  // set it.
+  if(initOpts().passive) return;
   parent.postMessage({
     type: 'cert-ready',
     count: CERTS.length,
@@ -329,8 +402,17 @@ const fill = new T.DirectionalLight(0x9fb6ff, 0.13); fill.position.set(3.6,-1.8,
 const rim  = new T.DirectionalLight(0xffffff, 0.10); rim.position.set(1.6,1.2,-2.6);
 scene.add(key,fill,rim,new T.AmbientLight(0xffffff,0.16));
 
+/* The cursor light is a whisper, not a spotlight. Upstream ran it at 2.6 -
+   nearly twice the key light - from 1.7 units off the sheet, and pointing at
+   the certificate pushed 51% of its pixels to flat white, which is what made
+   the small type unreadable. The scan is a white document, so it has very
+   little headroom: 0.12 was still clipping 4.75% of the paper. 0.05 keeps the
+   sheet catching a little light under the cursor without approaching that. The
+   grab cursor carries the rest of the affordance. */
 const touchLight = new T.PointLight(0xffd9a8, 0, 7.5, 1.35);
 touchLight.position.set(0,0,1.7); scene.add(touchLight);
+const HOVER_LIGHT = 0.05;
+
 
 /* ---- geometry + the bend ------------------------------------------- */
 const SW = 2.30, SH = 1.626;
@@ -444,32 +526,42 @@ mat.onBeforeCompile = (sh)=>{
 const mesh  = new T.Mesh(geo, mat);
 const group = new T.Group(); group.add(mesh); scene.add(group);
 
-// a faint dark cloud so the sheet sits in front of the wordmark
+// A soft cloud behind the sheet so it reads as lifted off the page. The falloff
+// has to reach zero well inside the plane: the sheet now fills most of the
+// frame, so a gradient that is still dark at the plane's own edge would paint a
+// rectangle with a hard boundary - the very box this variant is trying not to
+// have.
 const haloTex = (()=>{
   const s=256,c=document.createElement('canvas'); c.width=c.height=s;
   const x=c.getContext('2d');
   const g=x.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
-  g.addColorStop(0,'rgba(0,0,0,.55)'); g.addColorStop(.45,'rgba(0,0,0,.28)');
-  g.addColorStop(1,'rgba(0,0,0,0)');
+  g.addColorStop(0,'rgba(0,0,0,.50)'); g.addColorStop(.18,'rgba(0,0,0,.30)');
+  g.addColorStop(.34,'rgba(0,0,0,0)');   g.addColorStop(1,'rgba(0,0,0,0)');
   x.fillStyle=g; x.fillRect(0,0,s,s);
   const t=new T.CanvasTexture(c); t.encoding=T.sRGBEncoding; return t;
 })();
-const halo = new T.Mesh(new T.PlaneGeometry(3.9,4.9),
-  new T.MeshBasicMaterial({map:haloTex, transparent:true, depthWrite:false, opacity:0.55}));
+const halo = new T.Mesh(new T.PlaneGeometry(3.0,2.4),
+  new T.MeshBasicMaterial({map:haloTex, transparent:true, depthWrite:false, opacity:0.5}));
 halo.position.z = -0.62; group.add(halo);
 
 /* ======================================================================
-   4. POINTER — drag to turn, hover to light
+   4. POINTER — drag to turn, hover to catch the light
    ====================================================================== */
 let dragging=false, dragYaw=0, dragPitch=0, release=0;
+// How far the sheet may tip towards or away from the camera. Upstream allowed
+// 0.60 rad (34 degrees), which swings a corner of the paper well outside the
+// frame - and a sandboxed iframe cannot draw past its own rectangle, so it gets
+// sliced off along a straight edge. The tip is what sets how tall the paper can
+// project: a sheet at its limit is roughly 1.5x its resting height, so a taller
+// box is the other half of the answer. 0.38 rad still reads as depth.
+const PITCH_LIMIT = 0.38;
 // spin carried after release, in rad/second — integrated with dt so the
 // fling travels the same distance at 60Hz and at 120Hz
 let velYaw=0, velPitch=0, prevYaw=0, prevPitch=0;
 let lastPX=0, lastPY=0, moved=0, overSheet=false, hover=0, hoverTarget=0;
 let quad=null, cursorNow='';
 const mouse = {x:0,y:0,tx:0,ty:0};
-const hintEl = document.getElementById('hint');
-let hintUsed=false;
+
 
 // JS mirror of the GLSL bend, corners only — enough to know whether the
 // pointer is on the paper
@@ -510,7 +602,7 @@ function inQuad(px,py){
   }
   return true;
 }
-function useHint(){ hintUsed=true; hintEl.style.opacity='0'; }
+
 
 window.addEventListener('pointermove', e=>{
   mouse.tx = (e.clientX/window.innerWidth  - 0.5)*2;
@@ -519,8 +611,8 @@ window.addEventListener('pointermove', e=>{
     const dx=e.clientX-lastPX, dy=e.clientY-lastPY;
     lastPX=e.clientX; lastPY=e.clientY; moved+=Math.abs(dx)+Math.abs(dy);
     dragYaw   += dx*0.0060;                   // glass prints through, so a
-    dragPitch  = clamp(dragPitch - dy*0.0045, -0.60, 0.60);  // full turn is honest
-    if(moved>40) useHint();
+    dragPitch  = clamp(dragPitch - dy*0.0045, -PITCH_LIMIT, PITCH_LIMIT);  // full turn is honest
+
     return;
   }
   overSheet = inQuad(e.clientX,e.clientY);
@@ -536,7 +628,8 @@ window.addEventListener('pointerdown', e=>{
 window.addEventListener('pointerup', ()=>{
   if(dragging){ dragging=false; release=0.6; }
 });
-window.addEventListener('pointerleave', ()=>{ hoverTarget=0; });
+window.addEventListener('pointerleave', ()=>{ overSheet=false; hoverTarget=0; });
+
 
 /* ======================================================================
    5. RESIZE
@@ -549,8 +642,19 @@ function resize(){
   camera.aspect = vw/vh; camera.updateProjectionMatrix();
   const visH = 2*camera.position.z*Math.tan(T.MathUtils.degToRad(camera.fov)/2);
   const visW = visH*camera.aspect;
-  const wCap = Math.min(0.88, 0.60 + Math.max(0, 1.45 - camera.aspect)*0.45);
-  group.scale.setScalar(Math.min(visH*0.72/SH, visW*wCap/SW));
+  // How much of the frame the sheet may claim on each axis. The old fit left it
+  // at 60% of the width with a wide empty margin on every side, so the scan was
+  // unreadable; the sheet now takes the frame and the shorter axis decides.
+  //
+  // The height is held well back from the width because the frame is a hard
+  // rectangle, not a mask: a tilted sheet projects taller than it is, and past
+  // the frame it gets cut along a straight line. A rectangle rotated in depth
+  // can need its own diagonal to fit, so some clipping is unavoidable at extreme
+  // angles - the job here is to keep the resting sheet large and push the
+  // cropping out to poses nobody holds.
+  const hCap = 0.80;
+  const wCap = Math.min(0.99, 0.98 + Math.max(0, 1.45 - camera.aspect)*0.45);
+  group.scale.setScalar(Math.min(visH*hCap/SH, visW*wCap/SW));
 }
 window.addEventListener('resize', resize);
 
@@ -569,8 +673,8 @@ function frame(){
 
   intro += (1 - intro) * Math.min(1, dt*1.9);
   mat.opacity = intro;
-  halo.material.opacity = intro*0.55;
-  if(intro > 0.7 && !hintUsed) hintEl.style.opacity='1';
+  halo.material.opacity = intro*0.5;
+
 
   if(dragging){
     // measure the throw as an angular velocity, smoothed over a few frames
@@ -581,7 +685,7 @@ function frame(){
     velPitch = clamp(velPitch,-4, 4);
   } else {
     dragYaw   += velYaw*dt;
-    dragPitch  = clamp(dragPitch + velPitch*dt, -0.60, 0.60);
+    dragPitch  = clamp(dragPitch + velPitch*dt, -PITCH_LIMIT, PITCH_LIMIT);
     const decay = Math.pow(0.018, dt);
     velYaw *= decay; velPitch *= decay;
     release = Math.max(0, release - dt);
@@ -604,14 +708,19 @@ function frame(){
   group.rotation.z = Math.sin(t*0.27)*0.018*idle;
   group.position.y = Math.sin(t*0.36)*0.06*idle - rise*0.7;
   group.position.x = Math.sin(t*0.21)*0.05*idle + mouse.x*0.10;
-  // one full turn of the sheet = one certificate
-  if(certTex.length > 1){
-    const n  = certTex.length;
-    const ci = ((Math.round(dragYaw/(Math.PI*2)) % n) + n) % n;
+  // Rotation never changes the certificate. Dragging or throwing the paper only
+  // spins it; the scan is swapped solely while a card-driven turn is running,
+  // and turnIndexAt puts every one of those swaps on an edge-on angle where the
+  // paper has no width on screen. Ungated, a hard flick carried the sheet over
+  // a turn boundary and it landed on a different certificate all by itself.
+  if(turnTarget !== null && certTex.length > 1){
+    const ci = ((turnIndexAt(dragYaw) % certTex.length) + certTex.length) % certTex.length;
     if(ci !== curCert){
       curCert = ci; mat.map = certTex[ci]; mat.needsUpdate = true;
-      // keep the parent prev/next cards in step with a manual drag
-      parent.postMessage({ type: "cert-changed", index: ci }, "*");
+      // driven:false - this is the answer to a request the cards made. Reports
+      // that do not match what they asked for are the sheet passing through on
+      // the way, and the parent ignores those.
+      parent.postMessage({ type: "cert-changed", index: ci, driven: false }, "*");
     }
   }
 
@@ -619,23 +728,31 @@ function frame(){
   // requested turn instead of snapping. A drag always wins.
   if(turnTarget !== null){
     if(dragging){
+      // Report the drop. The parent is holding a request from that click and
+      // only clears it on a matching answer, so without this it would sit on a
+      // certificate the sheet was asked for and never turned to.
       turnTarget = null; turnGoal = null;
+      parent.postMessage({ type: "cert-changed", index: curCert, driven: true }, "*");
     } else {
       if(turnGoal === null){
         const twoPi = Math.PI*2;
-        const cur   = Math.round(dragYaw/twoPi);
         const n2    = Math.max(1, certTex.length);
+        // The turn the sheet is parked on. Deliberately not read as a
+        // certificate: a free drag can leave the paper resting on any turn and
+        // the loaded scan stays put through all of it, so the two are no longer
+        // the same number. The destination is resolved by congruence instead -
+        // the nearest turn whose own index is the requested certificate.
+        const here   = Math.round(dragYaw/twoPi);
         // Latch the destination once. Recomputing it every frame makes the
-        // target jump as dragYaw crosses a half-turn boundary, which sends
+        // target jump as dragYaw crosses a turn boundary, which sends
         // the sheet oscillating between two certificates forever.
         // Shortest way round, but never zero turns: landing on the turn the
         // sheet already sits on would ask it to go nowhere, so re-selecting
         // the same certificate takes it all the way round instead.
-        let d = turnTarget - cur;
+        let d = (((turnTarget - here) % n2) + n2) % n2;
+        if(d === 0)   d = n2;
         if(d >  n2/2) d -= n2;
-        if(d < -n2/2) d += n2;
-        if(d === 0)   d = 1;
-        turnGoal  = (cur + d) * twoPi;
+        turnGoal  = (here + d) * twoPi;
         turnFrom  = dragYaw;
         turnStart = t;
       }
@@ -658,7 +775,7 @@ function frame(){
   group.updateMatrixWorld();
 
   hover += (hoverTarget - hover) * Math.min(1, dt*4.5);
-  touchLight.intensity = hover * 2.6 * intro;
+  touchLight.intensity = hover * HOVER_LIGHT * intro;
   if(hover > 0.002){
     lightPos.set(mouse.tx, -mouse.ty, 0.5).unproject(camera).sub(camera.position).normalize();
     touchLight.position.copy(camera.position)
@@ -673,17 +790,31 @@ function frame(){
 }
 
 function boot(){
+  PASSIVE = !!initOpts().passive;
   loadCertImages().then(()=>{
     certTex.forEach(t=>t.dispose()); certTex.length = 0;
-    for(let i=0;i<CERTS.length;i++) certTex.push(makeCertTexture(i));
+    if(PASSIVE){
+      // A placeholder so the mesh has a map to compile with, and a curCert of -1
+      // so the first real request always applies - including a request for
+      // certificate 0, which would otherwise look like a no-op and leave this
+      // placeholder on screen for good.
+      certTex.push(makeCertTexture(0));
+      curCert = -1;
+    } else {
+      for(let i=0;i<CERTS.length;i++) certTex.push(makeCertTexture(i));
+      curCert = 0;
+    }
     const t2 = certTex.length ? certTex[0] : makeCertTexture(0);
     if(tex) tex.dispose();
-    mat.map = t2; mat.needsUpdate = true; curCert = 0;
+    mat.map = t2; mat.needsUpdate = true;
   resize();
   mesh.visible = true; mat.opacity = 0.002;
   renderer.compile(scene,camera); renderer.render(scene,camera);
   mat.opacity = 1;
   frame();
+  booted = true;
+  // a request that arrived mid-boot still has to be honoured
+  if(PASSIVE) applyPassiveCert(wantPassive);
   });
 }
 
@@ -703,7 +834,7 @@ if(document.fonts && document.fonts.ready){
 } else boot();
 
 window.__sheet = {group, mat, uni, renderer, scene, camera, mesh,
-  state:()=>({intro, dragYaw, dragPitch, hover, quad}),
+  state:()=>({intro, dragYaw, dragPitch, overSheet, quad}),
   hit:(x,y)=>inQuad(x,y),
   spin:(y)=>{ dragYaw=y; release=1e9; }};
 })();

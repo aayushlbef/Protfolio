@@ -50,7 +50,9 @@ $out = @()
 $meta = @()
 
 foreach ($c in $certs) {
-  $src = [System.IO.Path]::Combine($PSScriptRoot, '..', $c.file)
+  # The source scans live beside the generated ones, in the same public
+  # certificates folder - they used to sit loose in the project root.
+  $src = [System.IO.Path]::Combine($thumbDir, $c.file)
   if (-not (Test-Path -LiteralPath $src)) {
     Write-Warning "Skipping missing file: $($c.file)"
     continue

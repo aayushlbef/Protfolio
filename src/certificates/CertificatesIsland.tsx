@@ -80,6 +80,12 @@ export function CertificatesIsland() {
   // cards follow along instead of drifting out of sync.
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
+      // The two side cards are the same sheet in a non-interactive copy, so
+      // three documents share this listener. Only the centre one drives the
+      // cards; a message from anywhere else is not ours to act on.
+      const frame = hostRef.current?.querySelector('iframe');
+      if (!frame || event.source !== frame.contentWindow) return;
+
       const data = event.data;
       if (!data || typeof data !== 'object') return;
 
@@ -111,6 +117,13 @@ export function CertificatesIsland() {
         pendingRef.current = null;
         currentRef.current = reported;
         setCurrent(reported);
+      } else if (data.driven) {
+        // The sheet dropped the request the cards made - a drag took over
+        // before the turn ran. Waiting for the old target would leave the
+        // cards describing a certificate that is no longer showing.
+        pendingRef.current = null;
+        currentRef.current = reported;
+        setCurrent(reported);
       }
       // otherwise: a stale report from an earlier request - ignore it
     };
@@ -130,12 +143,9 @@ export function CertificatesIsland() {
         onClick={() => goTo(prev)}
         aria-label={`Previous certificate: ${CERTS[prev].title}, ${CERTS[prev].issuer}`}
       >
-        <img src={thumbUrl(CERTS[prev].thumb)} alt="" loading="lazy" />
-        <span className="cert-side-body">
-          <span className="cert-side-dir">Previous</span>
-          <span className="cert-side-title">{CERTS[prev].title}</span>
-          <span className="cert-side-meta">{CERTS[prev].issuer}</span>
-        </span>
+        <Suspense fallback={<img src={thumbUrl(CERTS[prev].thumb)} alt="" loading="lazy" />}>
+          <ThreeDPaper variant="certificate" passive certIndex={prev} />
+        </Suspense>
       </button>
 
       <div className="cert-paper" ref={hostRef}>
@@ -150,12 +160,9 @@ export function CertificatesIsland() {
         onClick={() => goTo(next)}
         aria-label={`Next certificate: ${CERTS[next].title}, ${CERTS[next].issuer}`}
       >
-        <img src={thumbUrl(CERTS[next].thumb)} alt="" loading="lazy" />
-        <span className="cert-side-body">
-          <span className="cert-side-dir">Next</span>
-          <span className="cert-side-title">{CERTS[next].title}</span>
-          <span className="cert-side-meta">{CERTS[next].issuer}</span>
-        </span>
+        <Suspense fallback={<img src={thumbUrl(CERTS[next].thumb)} alt="" loading="lazy" />}>
+          <ThreeDPaper variant="certificate" passive certIndex={next} />
+        </Suspense>
       </button>
 
       <div className="cert-status" role="status" aria-live="polite">
@@ -163,7 +170,7 @@ export function CertificatesIsland() {
           {String(current + 1).padStart(2, '0')} / {String(COUNT).padStart(2, '0')}
         </span>
         <span className="cert-status-text">
-          {ready ? active.issuer : 'Loading certificates…'}
+          {ready ? active.title : 'Loading certificates…'}
           {active.href ? (
             <a
               className="cert-index-link"

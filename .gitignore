@@ -25,3 +25,6 @@ Thumbs.db
 # Local dev-server logs
 dev.log
 serve.log
+
+# Browser-automation session artifacts
+.playwright-mcp/
