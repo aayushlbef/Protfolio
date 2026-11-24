@@ -3,251 +3,652 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Aayush — Creative Developer & Portfolio</title>
-  
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- Icons -->
+  <title>Aayush Gupta | Portfolio</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome 6.5.1 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
-  <!-- Google AdSense -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9129847800412417" crossorigin="anonymous"></script>
-
+  <!-- Main stylesheet -->
   <link rel="stylesheet" href="/style.css" />
 </head>
-<body>
-  <!-- Custom Glow Cursor Follower -->
-  <div class="cursor-glow" id="cursorGlow"></div>
-  <div class="custom-crosshair" id="customCrosshair"></div>
+<body class="intro-playing view-desktop">
 
-  <!-- Main Hero Container Frame -->
-  <div class="hero-frame">
-    <!-- WebGL Three.js Canvas -->
-    <canvas id="webgl-canvas"></canvas>
+  <!-- ═══════════════════════════════════════════════════════════
+       CURSOR ANIMATION STAGE — fixed fullscreen, highest z-index
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="cursor-stage" id="cursorStage"></div>
 
-    <!-- Ambient Vignette & Grain Overlay -->
-    <div class="ambient-vignette"></div>
-    <div class="noise-overlay"></div>
+  <!-- Custom cursor dot -->
+  <div class="cursor-dot" id="cursorDot"></div>
 
-    <!-- Hero Content Overlay -->
-    <div class="hero-content">
+  <!-- ═══════════════════════════════════════════════════════════
+       DESKTOP
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="desktop" id="desktop">
+    <!-- JS will populate desktop icons from portfolioData.desktopFolders -->
+    <div class="desktop-grid" id="desktopGrid"></div>
 
-      <!-- Navigation Header -->
-      <header class="header">
-        <nav class="nav-capsule">
-          <button class="nav-link active" data-nav="home">Home</button>
-          <button class="nav-link" data-nav="collection">Collection</button>
-          <button class="nav-link" data-nav="technology">Technology</button>
-          <button class="nav-link" data-nav="clients">Clients</button>
-        </nav>
-
-        <div class="header-right">
-          <!-- Menu Button -->
-          <button class="menu-btn" id="menuBtn">
-            <span class="menu-text">Menu</span>
-            <span class="menu-dots">
-              <span></span>
-              <span></span>
-              <span></span>
-            </span>
-          </button>
-        </div>
-      </header>
-
-      <!-- Center Hero Area -->
-      <main class="hero-main">
-        <div class="hero-left">
-          <!-- Brand / Identity Title -->
-          <div class="title-container">
-            <h1 class="hero-title" id="heroTitle">
-              <span class="char-span">A</span><span class="char-span">A</span><span class="char-span">Y</span><span class="char-span">U</span><span class="char-span">S</span><span class="char-span">H</span><span class="title-break"></span><span class="char-span">G</span><span class="char-span">U</span><span class="char-span">P</span><span class="char-span">T</span><span class="char-span">A</span>
-            </h1>
-          </div>
-
-          <!-- Description Tagline -->
-          <p class="hero-description" id="heroDesc">
-            A tech-savvy student who's hobby and passion is same to learn about new technologies and always looks forward to seek techie knowledge.
-          </p>
-
-          <!-- CTA Buttons -->
-          <div class="hero-actions">
-            <a href="#discover" class="btn-discover magnetic-btn" id="discoverBtn">
-              <span class="btn-text">Discover</span>
-              <span class="arrow-circle">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                  <polyline points="12 5 19 12 12 19"></polyline>
-                </svg>
-              </span>
-            </a>
-
-            <a href="https://wa.me/9779767250246" target="_blank" rel="noopener" class="btn-connect magnetic-btn" id="connectBtn">
-              <span class="connect-icon">
-                <i class="fa-brands fa-whatsapp"></i>
-              </span>
-              <span class="btn-text">Connect With Us</span>
-            </a>
-          </div>
-        </div>
-
-      </main>
-
-      <!-- Bottom Bar -->
-      <footer class="hero-footer">
-        <!-- Social Icons -->
-        <div class="footer-socials">
-          <a href="https://github.com/aayushlbef" target="_blank" rel="noopener" class="social-btn" title="GitHub / Community">
-            <i class="fa-brands fa-github"></i>
-          </a>
-          <a href="https://x.com/Aayush2326v" target="_blank" rel="noopener" class="social-btn" title="X / Twitter">
-            <i class="fa-brands fa-x-twitter"></i>
-          </a>
-          <a href="https://www.linkedin.com/in/guptakaayush/" target="_blank" rel="noopener" class="social-btn" title="LinkedIn">
-            <i class="fa-brands fa-linkedin-in"></i>
-          </a>
-          <a href="#explore" class="social-btn arrow-btn" title="External link">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="7" y1="17" x2="17" y2="7"></line>
-              <polyline points="7 7 17 7 17 17"></polyline>
-            </svg>
-          </a>
-        </div>
-      </footer>
-
+    <!-- Shown after intro animation completes -->
+    <div class="desktop-welcome" id="desktopWelcome">
+      <p>Welcome to my digital workspace.</p>
     </div>
   </div>
 
-  <!-- About Section -->
-  <section class="about" id="about" aria-labelledby="aboutHeading">
-    <div class="about-ambient" aria-hidden="true"></div>
-    <div class="about-grain" aria-hidden="true"></div>
+  <!-- ═══════════════════════════════════════════════════════════
+       SECTIONS CONTAINER — all portfolio panels
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="sections-container" id="sectionsContainer">
 
-    <div class="about-inner">
-      <header class="about-head">
-        <p class="about-eyebrow" data-reveal>
-          <span class="about-eyebrow-mark"></span>
-          Profile // Identity
-        </p>
-
-        <h2 class="about-title" id="aboutHeading" data-reveal>
-          <span class="about-char">A</span><span class="about-char">b</span><span class="about-char">o</span><span class="about-char">u</span><span class="about-char">t</span><span class="about-space"></span><span class="about-char">M</span><span class="about-char">e</span>
-        </h2>
-
-        <p class="about-lede" data-reveal>
-          Building software, breaking systems, and writing down the interesting
-          parts — from Kathmandu, Nepal.
-        </p>
-      </header>
-
-      <div class="about-grid">
-        <figure class="about-media" data-reveal>
-          <div class="about-frame" id="aboutFrame">
-            <canvas id="about-canvas" aria-hidden="true"></canvas>
-            <span class="about-scanline" aria-hidden="true"></span>
-          </div>
-        </figure>
-
-        <div class="about-body">
-          <p class="about-paragraph" id="aboutParagraph">
-            I am Aayush Kumar Gupta, a Computer Science and IT student at Lord
-            Buddha Education Foundation (affiliated with Asia Pacific University)
-            based in Kathmandu, Nepal. Driven by a passion for building robust
-            software and understanding modern system architectures, my technical
-            focus spans cross-platform application development, network security,
-            and digital forensics. From engineering desktop applications in C++
-            and Python—such as the open-source Nepali Date Widget—to exploring
-            vulnerability analysis and system integrity, I bridge code craft with
-            core security fundamentals. Beyond engineering, I share hardware
-            insights and tech tutorials through my YouTube channel, GupLogy,
-            constantly aiming to turn complex technical challenges into clean,
-            open-source solutions.
-          </p>
-
-          <ul class="about-focus" id="aboutFocus">
-            <li class="about-tag">Cross-Platform Apps</li>
-            <li class="about-tag">Network Security</li>
-            <li class="about-tag">Digital Forensics</li>
-            <li class="about-tag">C++ / Python</li>
-            <li class="about-tag">System Architecture</li>
-            <li class="about-tag">Open Source</li>
-          </ul>
-
-          <dl class="about-facts">
-            <div class="about-fact" data-reveal>
-              <dt>Study</dt>
-              <dd>CS &amp; IT — Lord Buddha Education Foundation</dd>
-            </div>
-            <div class="about-fact" data-reveal>
-              <dt>Based In</dt>
-              <dd>Kathmandu, Nepal</dd>
-            </div>
-            <div class="about-fact" data-reveal>
-              <dt>Channel</dt>
-              <dd>GupLogy — YouTube</dd>
-            </div>
-          </dl>
-
-          <div class="about-actions" data-reveal>
-            <a class="about-btn about-btn--primary" href="https://github.com/aayushlbef" target="_blank" rel="noopener">
-              <i class="fa-brands fa-github"></i>
-              <span>GitHub</span>
-            </a>
-            <a class="about-btn" href="https://wa.me/9779767250246" target="_blank" rel="noopener">
-              <i class="fa-brands fa-whatsapp"></i>
-              <span>Let's Talk</span>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Certificates Section -->
-  <section class="certificates" id="certificates" aria-labelledby="certHeading">
-    <div class="cert-inner">
-      <header class="cert-head scroll-fade-up">
-        <p class="cert-eyebrow">Verified Credentials</p>
-        <h2 class="cert-title" id="certHeading">Certificates</h2>
-        <p class="cert-lede">
-          Workshops and courses completed across AI, security and software
-          practice. Drag the paper to turn it, or step through them with the
-          cards either side.
-        </p>
-      </header>
-
-      <!-- React island: mounts the 3D sheet plus the prev/next cards -->
-      <div id="certificates-root" class="scroll-scale-in"></div>
-    </div>
-  </section>
-
-  <!-- Interactive Menu Drawer -->
-  <div class="menu-overlay" id="menuOverlay">
-    <div class="menu-drawer">
-      <div class="drawer-header">
-        <span class="drawer-title">NAVIGATION INDEX</span>
-        <button class="drawer-close" id="drawerClose">
-          <i class="fa-solid fa-xmark"></i>
+    <!-- ─────────────────────────────────────────────────────────
+         ABOUT ME
+         ───────────────────────────────────────────────────────── -->
+    <section class="section-panel" id="section-about" data-section="about">
+      <div class="section-chrome">
+        <button class="section-back" data-action="close-section">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Desktop
         </button>
+        <h2 class="section-title">About Me</h2>
       </div>
-      <ul class="drawer-links">
-        <li><a href="#home" class="drawer-link"><span class="d-num">01</span> HOME</a></li>
-        <li><a href="#collection" class="drawer-link"><span class="d-num">02</span> COLLECTION</a></li>
-        <li><a href="#technology" class="drawer-link"><span class="d-num">03</span> TECHNOLOGY</a></li>
-        <li><a href="#clients" class="drawer-link"><span class="d-num">04</span> CLIENTS</a></li>
-        <li><a href="#about" class="drawer-link"><span class="d-num">05</span> ABOUT AAYUSH</a></li>
-      </ul>
-      <div class="drawer-footer">
-        <span>PORTFOLIO // 2026</span>
-        <span>AAYUSH PORTFOLIO</span>
+      <div class="section-body">
+        <div class="about-hero">
+          <div class="about-avatar">
+            <img src="./images/About Me.JPG" alt="Aayush Kumar Gupta" />
+          </div>
+          <div class="about-info">
+            <h3>Aayush Kumar Gupta</h3>
+            <p class="about-title">Creative Developer &amp; Security Enthusiast</p>
+            <div class="about-meta">
+              <span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/>
+                </svg>
+                Kathmandu, Nepal
+              </span>
+              <span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" fill="currentColor"/>
+                </svg>
+                Lord Buddha Education Foundation (Asia Pacific University)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-bio">
+          <p>I am a Computer Science and IT student driven by a passion for building robust software and understanding modern system architectures. My technical focus spans cross-platform application development, network security, and digital forensics. From engineering desktop applications in C++ and Python—such as the open-source Nepali Date Widget—to exploring vulnerability analysis and system integrity, I bridge code craft with core security fundamentals.</p>
+          <p>Beyond engineering, I share hardware insights and tech tutorials through my YouTube channel, GupLogy, constantly aiming to turn complex technical challenges into clean, open-source solutions.</p>
+        </div>
+
+        <div class="about-interests">
+          <span class="about-pill">Open Source Contributor</span>
+          <span class="about-pill">Tech YouTuber (GupLogy)</span>
+          <span class="about-pill">Hardware Enthusiast</span>
+          <span class="about-pill">Cybersecurity Researcher</span>
+        </div>
+
+        <div class="about-goals">
+          <h4>Career Goals</h4>
+          <p>To build secure, elegant software and bridge the gap between usability and system integrity—while helping others learn through open-source and content creation.</p>
+        </div>
+
+        <div class="social-row">
+          <a class="social-link" href="https://github.com/aayushlbef" target="_blank" rel="noopener noreferrer" title="GitHub">
+            <i class="fab fa-github"></i>
+          </a>
+          <a class="social-link" href="https://www.linkedin.com/in/guptakaayush/" target="_blank" rel="noopener noreferrer" title="LinkedIn">
+            <i class="fab fa-linkedin-in"></i>
+          </a>
+          <a class="social-link" href="https://x.com/Aayush2326v" target="_blank" rel="noopener noreferrer" title="X / Twitter">
+            <i class="fab fa-x-twitter"></i>
+          </a>
+          <a class="social-link" href="https://youtube.com/@GupLogy" target="_blank" rel="noopener noreferrer" title="YouTube">
+            <i class="fab fa-youtube"></i>
+          </a>
+          <a class="social-link" href="https://wa.me/9779767250246" target="_blank" rel="noopener noreferrer" title="WhatsApp">
+            <i class="fab fa-whatsapp"></i>
+          </a>
+          <a class="social-link" href="mailto:aayushgupta@example.com" title="Email">
+            <i class="fas fa-envelope"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────
+         PROJECTS
+         ───────────────────────────────────────────────────────── -->
+    <section class="section-panel" id="section-projects" data-section="projects">
+      <div class="section-chrome">
+        <button class="section-back" data-action="close-section">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Desktop
+        </button>
+        <h2 class="section-title">Projects</h2>
+      </div>
+      <div class="section-body">
+        <div class="projects-grid">
+
+          <!-- Nepali Date Widget -->
+          <div class="project-card">
+            <div class="project-preview">
+              <img src="./calendar-window.png" alt="Nepali Date Widget" />
+            </div>
+            <div class="project-info">
+              <h3>Nepali Date Widget</h3>
+              <p>An open-source cross-platform desktop widget displaying the Nepali (Bikram Sambat) date. Built with Python and designed for minimal resource usage.</p>
+              <div class="tech-tags">
+                <span class="tech-tag">Python</span>
+                <span class="tech-tag">Tkinter</span>
+                <span class="tech-tag">Cross-Platform</span>
+              </div>
+              <div class="project-links">
+                <a href="https://github.com/aayushlbef" target="_blank" rel="noopener noreferrer" class="project-link-btn">
+                  <i class="fab fa-github"></i> GitHub
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Health Management System -->
+          <div class="project-card">
+            <div class="project-preview">
+              <img src="./health.png" alt="Health Management System" />
+            </div>
+            <div class="project-info">
+              <h3>Health Management System</h3>
+              <p>A comprehensive health records management application for tracking patient data, appointments, and medical histories.</p>
+              <div class="tech-tags">
+                <span class="tech-tag">C++</span>
+                <span class="tech-tag">Database</span>
+                <span class="tech-tag">Desktop App</span>
+              </div>
+              <div class="project-links">
+                <a href="https://github.com/aayushlbef" target="_blank" rel="noopener noreferrer" class="project-link-btn">
+                  <i class="fab fa-github"></i> GitHub
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Movie Ticket Booking -->
+          <div class="project-card">
+            <div class="project-preview">
+              <img src="./movie-ticket.png" alt="Movie Ticket Booking" />
+            </div>
+            <div class="project-info">
+              <h3>Movie Ticket Booking</h3>
+              <p>A movie ticket booking application with seat selection, showtime management, and booking confirmation features.</p>
+              <div class="tech-tags">
+                <span class="tech-tag">Python</span>
+                <span class="tech-tag">GUI</span>
+                <span class="tech-tag">Database</span>
+              </div>
+              <div class="project-links">
+                <a href="https://github.com/aayushlbef" target="_blank" rel="noopener noreferrer" class="project-link-btn">
+                  <i class="fab fa-github"></i> GitHub
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Restaurant Management -->
+          <div class="project-card">
+            <div class="project-preview">
+              <img src="./resturant.png" alt="Restaurant Management" />
+            </div>
+            <div class="project-info">
+              <h3>Restaurant Management</h3>
+              <p>A restaurant order and table management system with menu display, order tracking, and billing functionalities.</p>
+              <div class="tech-tags">
+                <span class="tech-tag">Python</span>
+                <span class="tech-tag">Desktop App</span>
+                <span class="tech-tag">Database</span>
+              </div>
+              <div class="project-links">
+                <a href="https://github.com/aayushlbef" target="_blank" rel="noopener noreferrer" class="project-link-btn">
+                  <i class="fab fa-github"></i> GitHub
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Terminal Portfolio -->
+          <div class="project-card">
+            <div class="project-preview">
+              <img src="./terminal.png" alt="Terminal Portfolio" />
+            </div>
+            <div class="project-info">
+              <h3>Terminal Portfolio</h3>
+              <p>An interactive terminal-style portfolio website that emulates a command-line interface for a unique browsing experience.</p>
+              <div class="tech-tags">
+                <span class="tech-tag">JavaScript</span>
+                <span class="tech-tag">HTML/CSS</span>
+                <span class="tech-tag">CLI Design</span>
+              </div>
+              <div class="project-links">
+                <a href="https://github.com/aayushlbef" target="_blank" rel="noopener noreferrer" class="project-link-btn">
+                  <i class="fab fa-github"></i> GitHub
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Todo Application -->
+          <div class="project-card">
+            <div class="project-preview">
+              <img src="./todo.png" alt="Todo Application" />
+            </div>
+            <div class="project-info">
+              <h3>Todo Application</h3>
+              <p>A clean, feature-rich todo application with task categories, priorities, deadlines, and persistent storage.</p>
+              <div class="tech-tags">
+                <span class="tech-tag">JavaScript</span>
+                <span class="tech-tag">HTML/CSS</span>
+                <span class="tech-tag">LocalStorage</span>
+              </div>
+              <div class="project-links">
+                <a href="https://github.com/aayushlbef" target="_blank" rel="noopener noreferrer" class="project-link-btn">
+                  <i class="fab fa-github"></i> GitHub
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────
+         CERTIFICATES
+         ───────────────────────────────────────────────────────── -->
+    <section class="section-panel" id="section-certificates" data-section="certificates">
+      <div class="section-chrome">
+        <button class="section-back" data-action="close-section">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Desktop
+        </button>
+        <h2 class="section-title">Certificates</h2>
+      </div>
+      <div class="section-body">
+        <div class="cert-gallery">
+
+          <div class="cert-card">
+            <div class="cert-preview">
+              <img src="./images/certificates/AI &amp; Robotics 4 - Days Learning Certificates.png" alt="AI &amp; Robotics 4-Days Learning" />
+            </div>
+            <div class="cert-info">
+              <h4>AI &amp; Robotics 4-Days Learning</h4>
+              <span class="cert-issuer">Workshop Certificate</span>
+              <span class="cert-date">2024</span>
+            </div>
+          </div>
+
+          <div class="cert-card">
+            <div class="cert-preview">
+              <img src="./images/certificates/Coursera Foundation of Cyber Security.png" alt="Foundations of Cybersecurity" />
+            </div>
+            <div class="cert-info">
+              <h4>Foundations of Cybersecurity</h4>
+              <span class="cert-issuer">Coursera — Google</span>
+              <span class="cert-date">2024</span>
+            </div>
+          </div>
+
+          <div class="cert-card">
+            <div class="cert-preview">
+              <img src="./images/certificates/Coursera Play It Safe.png" alt="Play It Safe: Manage Security Risks" />
+            </div>
+            <div class="cert-info">
+              <h4>Play It Safe: Manage Security Risks</h4>
+              <span class="cert-issuer">Coursera — Google</span>
+              <span class="cert-date">2024</span>
+            </div>
+          </div>
+
+          <div class="cert-card">
+            <div class="cert-preview">
+              <img src="./images/certificates/Github Certificate.png" alt="GitHub Foundations" />
+            </div>
+            <div class="cert-info">
+              <h4>GitHub Foundations</h4>
+              <span class="cert-issuer">GitHub</span>
+              <span class="cert-date">2024</span>
+            </div>
+          </div>
+
+          <div class="cert-card">
+            <div class="cert-preview">
+              <img src="./images/certificates/cert-01.jpg" alt="Professional Certificate I" />
+            </div>
+            <div class="cert-info">
+              <h4>Professional Certificate I</h4>
+              <span class="cert-issuer">Certified Program</span>
+              <span class="cert-date">2024</span>
+            </div>
+          </div>
+
+          <div class="cert-card">
+            <div class="cert-preview">
+              <img src="./images/certificates/cert-02.jpg" alt="Professional Certificate II" />
+            </div>
+            <div class="cert-info">
+              <h4>Professional Certificate II</h4>
+              <span class="cert-issuer">Certified Program</span>
+              <span class="cert-date">2024</span>
+            </div>
+          </div>
+
+          <div class="cert-card">
+            <div class="cert-preview">
+              <img src="./images/certificates/cert-03.jpg" alt="Professional Certificate III" />
+            </div>
+            <div class="cert-info">
+              <h4>Professional Certificate III</h4>
+              <span class="cert-issuer">Certified Program</span>
+              <span class="cert-date">2024</span>
+            </div>
+          </div>
+
+          <div class="cert-card">
+            <div class="cert-preview">
+              <img src="./images/certificates/cert-04.jpg" alt="Professional Certificate IV" />
+            </div>
+            <div class="cert-info">
+              <h4>Professional Certificate IV</h4>
+              <span class="cert-issuer">Certified Program</span>
+              <span class="cert-date">2024</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────
+         TECHNICAL SKILLS
+         ───────────────────────────────────────────────────────── -->
+    <section class="section-panel" id="section-skills" data-section="skills">
+      <div class="section-chrome">
+        <button class="section-back" data-action="close-section">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Desktop
+        </button>
+        <h2 class="section-title">Technical Skills</h2>
+      </div>
+      <div class="section-body">
+
+        <div class="skill-category">
+          <h3>Languages</h3>
+          <div class="skill-grid">
+            <div class="skill-chip"><i class="fas fa-code"></i> C++</div>
+            <div class="skill-chip"><i class="fab fa-python"></i> Python</div>
+            <div class="skill-chip"><i class="fab fa-js"></i> JavaScript</div>
+            <div class="skill-chip"><i class="fas fa-code"></i> TypeScript</div>
+            <div class="skill-chip"><i class="fab fa-java"></i> Java</div>
+            <div class="skill-chip"><i class="fas fa-database"></i> SQL</div>
+          </div>
+        </div>
+
+        <div class="skill-category">
+          <h3>Frontend</h3>
+          <div class="skill-grid">
+            <div class="skill-chip"><i class="fab fa-html5"></i> HTML5</div>
+            <div class="skill-chip"><i class="fab fa-css3-alt"></i> CSS3</div>
+            <div class="skill-chip"><i class="fab fa-react"></i> React</div>
+            <div class="skill-chip"><i class="fas fa-wind"></i> Tailwind CSS</div>
+            <div class="skill-chip"><i class="fas fa-cube"></i> Three.js</div>
+          </div>
+        </div>
+
+        <div class="skill-category">
+          <h3>Backend</h3>
+          <div class="skill-grid">
+            <div class="skill-chip"><i class="fab fa-node-js"></i> Node.js</div>
+            <div class="skill-chip"><i class="fas fa-server"></i> Express</div>
+            <div class="skill-chip"><i class="fas fa-plug"></i> REST APIs</div>
+          </div>
+        </div>
+
+        <div class="skill-category">
+          <h3>Databases</h3>
+          <div class="skill-grid">
+            <div class="skill-chip"><i class="fas fa-database"></i> MySQL</div>
+            <div class="skill-chip"><i class="fas fa-leaf"></i> MongoDB</div>
+            <div class="skill-chip"><i class="fas fa-database"></i> SQLite</div>
+          </div>
+        </div>
+
+        <div class="skill-category">
+          <h3>Tools</h3>
+          <div class="skill-grid">
+            <div class="skill-chip"><i class="fab fa-git-alt"></i> Git / GitHub</div>
+            <div class="skill-chip"><i class="fas fa-laptop-code"></i> VS Code</div>
+            <div class="skill-chip"><i class="fab fa-linux"></i> Linux</div>
+            <div class="skill-chip"><i class="fab fa-docker"></i> Docker</div>
+            <div class="skill-chip"><i class="fas fa-shield-alt"></i> Wireshark</div>
+            <div class="skill-chip"><i class="fab fa-figma"></i> Figma</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────
+         EXPERIENCE
+         ───────────────────────────────────────────────────────── -->
+    <section class="section-panel" id="section-experience" data-section="experience">
+      <div class="section-chrome">
+        <button class="section-back" data-action="close-section">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Desktop
+        </button>
+        <h2 class="section-title">Experience</h2>
+      </div>
+      <div class="section-body">
+        <div class="timeline">
+
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <h3>Open Source Contributor</h3>
+              <div class="timeline-company">GitHub Community</div>
+              <div class="timeline-period">2023 — Present</div>
+              <p class="timeline-desc">Contributing to open-source projects including cross-platform desktop tools and security utilities. Building and maintaining the Nepali Date Widget used by hundreds of users.</p>
+              <span class="timeline-type" data-type="work">Work</span>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <h3>Tech Content Creator</h3>
+              <div class="timeline-company">GupLogy — YouTube</div>
+              <div class="timeline-period">2022 — Present</div>
+              <p class="timeline-desc">Creating tech tutorials, hardware reviews, and programming walkthroughs. Covering topics from system builds to network security concepts for a growing audience.</p>
+              <span class="timeline-type" data-type="work">Work</span>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <h3>CS &amp; IT Student</h3>
+              <div class="timeline-company">Lord Buddha Education Foundation</div>
+              <div class="timeline-period">2023 — Present</div>
+              <p class="timeline-desc">Pursuing Computer Science &amp; IT with focus on software development, system architecture, network security, and digital forensics. Affiliated with Asia Pacific University.</p>
+              <span class="timeline-type" data-type="training">Training</span>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <h3>AI &amp; Robotics Workshop</h3>
+              <div class="timeline-company">Workshop Training</div>
+              <div class="timeline-period">2024</div>
+              <p class="timeline-desc">Completed intensive 4-day workshop on artificial intelligence fundamentals and robotics programming, covering machine learning basics and hardware integration.</p>
+              <span class="timeline-type" data-type="training">Training</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────
+         CONTACT
+         ───────────────────────────────────────────────────────── -->
+    <section class="section-panel" id="section-contact" data-section="contact">
+      <div class="section-chrome">
+        <button class="section-back" data-action="close-section">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Desktop
+        </button>
+        <h2 class="section-title">Contact</h2>
+      </div>
+      <div class="section-body">
+        <div class="contact-grid">
+
+          <!-- Left: info + links -->
+          <div class="contact-info-col">
+            <h2 class="contact-heading">Let's Connect</h2>
+            <p class="contact-desc">I'm always open to new opportunities, collaborations, and conversations about tech, security, or open-source. Feel free to reach out through any of the channels below.</p>
+
+            <div class="contact-links">
+              <a class="contact-link" href="mailto:aayushgupta@example.com" title="Email">
+                <i class="fas fa-envelope"></i>
+                <span>aayushgupta@example.com</span>
+              </a>
+              <a class="contact-link" href="https://github.com/aayushlbef" target="_blank" rel="noopener noreferrer" title="GitHub">
+                <i class="fab fa-github"></i>
+                <span>github.com/aayushlbef</span>
+              </a>
+              <a class="contact-link" href="https://www.linkedin.com/in/guptakaayush/" target="_blank" rel="noopener noreferrer" title="LinkedIn">
+                <i class="fab fa-linkedin-in"></i>
+                <span>linkedin.com/in/guptakaayush</span>
+              </a>
+              <a class="contact-link" href="https://x.com/Aayush2326v" target="_blank" rel="noopener noreferrer" title="X / Twitter">
+                <i class="fab fa-x-twitter"></i>
+                <span>x.com/Aayush2326v</span>
+              </a>
+              <a class="contact-link" href="https://youtube.com/@GupLogy" target="_blank" rel="noopener noreferrer" title="YouTube">
+                <i class="fab fa-youtube"></i>
+                <span>youtube.com/@GupLogy</span>
+              </a>
+              <a class="contact-link" href="https://wa.me/9779767250246" target="_blank" rel="noopener noreferrer" title="WhatsApp">
+                <i class="fab fa-whatsapp"></i>
+                <span>WhatsApp</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Right: contact form (decorative) -->
+          <div class="contact-form-col">
+            <form class="contact-form" onsubmit="return false;">
+              <input class="form-input" type="text" name="name" placeholder="Your Name" autocomplete="name" />
+              <input class="form-input" type="email" name="email" placeholder="Your Email" autocomplete="email" />
+              <textarea class="form-textarea" name="message" placeholder="Your Message" rows="5"></textarea>
+              <button class="form-submit" type="submit">
+                <i class="fas fa-paper-plane"></i> Send Message
+              </button>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /sections-container -->
+
+  <!-- ═══════════════════════════════════════════════════════════
+       TASKBAR
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="taskbar" id="taskbar">
+
+    <!-- Start area: Windows logo + search -->
+    <div class="taskbar-start">
+      <button class="tb-btn tb-win" title="Start">
+        <!-- Windows 11 logo: 4-pane grid -->
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="0" y="0" width="8" height="8" rx="1" fill="currentColor"/>
+          <rect x="10" y="0" width="8" height="8" rx="1" fill="currentColor"/>
+          <rect x="0" y="10" width="8" height="8" rx="1" fill="currentColor"/>
+          <rect x="10" y="10" width="8" height="8" rx="1" fill="currentColor"/>
+        </svg>
+      </button>
+      <button class="tb-btn tb-search" title="Search">
+        <!-- Magnifying glass -->
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="11.5" y1="11.5" x2="16" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Center: pinned taskbar items (JS populates) -->
+    <div class="taskbar-center" id="taskbarPins"></div>
+
+    <!-- End: system tray + clock -->
+    <div class="taskbar-end">
+      <div class="tray-icons">
+
+        <!-- Wi-Fi icon -->
+        <span class="tray-icon" title="Network">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M8 12.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z" fill="currentColor"/>
+            <path d="M4.5 10C5.6 8.9 6.7 8.3 8 8.3c1.3 0 2.4.6 3.5 1.7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+            <path d="M1.5 7C3.4 5.1 5.6 4 8 4c2.4 0 4.6 1.1 6.5 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+          </svg>
+        </span>
+
+        <!-- Volume icon -->
+        <span class="tray-icon" title="Volume">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M3 6H5.5L9 3v10L5.5 10H3V6z" fill="currentColor"/>
+            <path d="M11 5.5c.8.7 1.3 1.6 1.3 2.5s-.5 1.8-1.3 2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+            <path d="M12.5 3.5c1.4 1.2 2.2 2.8 2.2 4.5s-.8 3.3-2.2 4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+          </svg>
+        </span>
+
+        <!-- Battery icon -->
+        <span class="tray-icon" title="Battery">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="1" y="4.5" width="12" height="7" rx="1.5" stroke="currentColor" stroke-width="1.3"/>
+            <rect x="13" y="6.5" width="2" height="3" rx="0.5" fill="currentColor"/>
+            <rect x="2.5" y="6" width="8" height="4" rx="0.5" fill="currentColor"/>
+          </svg>
+        </span>
+
+      </div>
+
+      <!-- Clock -->
+      <div class="tb-clock" id="tbClock">
+        <span class="clock-time">10:30 PM</span>
+        <span class="clock-date">11/24/2026</span>
       </div>
     </div>
-  </div>
 
+  </div><!-- /taskbar -->
+
+  <!-- Main JS module -->
   <script type="module" src="/main.js"></script>
-  <script type="module" src="/about.js"></script>
-  <script type="module" src="/src/certificates/index.tsx"></script>
 </body>
 </html>
