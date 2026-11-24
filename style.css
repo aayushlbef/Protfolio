@@ -133,6 +133,19 @@ body {
   overflow: hidden;
 }
 
+/* Smooth fade at the bottom of the hero so it blends into the about section */
+.hero-frame::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 180px;
+  background: linear-gradient(to bottom, transparent 0%, #0d2219 100%);
+  z-index: 5;
+  pointer-events: none;
+}
+
 /* --------------------------------------------------------------------------
    WEBGL THREE.JS CANVAS
    -------------------------------------------------------------------------- */
@@ -853,9 +866,10 @@ a, button {
   width: 100%;
   padding: clamp(72px, 10vw, 140px) clamp(24px, 5vw, 64px);
   background:
-    radial-gradient(ellipse at 50% 0%, rgba(36, 84, 64, 0.55) 0%, transparent 60%),
-    linear-gradient(180deg, #0a1c13 0%, #071410 100%);
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
+    radial-gradient(ellipse at 50% 0%, rgba(36, 84, 64, 0.35) 0%, transparent 55%),
+    linear-gradient(180deg, #0d2219 0%, #0a1c13 30%, #071410 100%);
+  /* Remove the hard border-top line between hero and about */
+  border-top: none;
   overflow: hidden;
 }
 
@@ -1111,6 +1125,66 @@ a, button {
 .about--pre .about-word {
   opacity: 0;
 }
+
+
+/* --------------------------------------------------------------------------
+   SCROLL-TRIGGERED SECTION ANIMATIONS
+   -------------------------------------------------------------------------- */
+.scroll-fade-up {
+  opacity: 0;
+  transform: translateY(60px);
+  transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scroll-fade-up.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.scroll-fade-left {
+  opacity: 0;
+  transform: translateX(-50px);
+  transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scroll-fade-left.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.scroll-fade-right {
+  opacity: 0;
+  transform: translateX(50px);
+  transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scroll-fade-right.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.scroll-scale-in {
+  opacity: 0;
+  transform: scale(0.92);
+  transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scroll-scale-in.is-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Stagger delay classes */
+.delay-1 { transition-delay: 0.1s; }
+.delay-2 { transition-delay: 0.2s; }
+.delay-3 { transition-delay: 0.3s; }
+.delay-4 { transition-delay: 0.4s; }
+.delay-5 { transition-delay: 0.5s; }
+.delay-6 { transition-delay: 0.6s; }
 
 /* --------------------------------------------------------------------------
    RESPONSIVENESS

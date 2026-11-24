@@ -672,3 +672,42 @@ onWindowResize();
 animateScene();
 runEntranceAnimation();
 
+/* ==========================================================================
+   SCROLL-TRIGGERED SECTION ANIMATIONS
+   Uses IntersectionObserver so elements animate in once they enter the
+   viewport. Each element with a scroll-fade-* or scroll-scale-in class
+   gets an `is-visible` class added when it scrolls into view.
+   ========================================================================== */
+function initScrollAnimations() {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const animatedElements = document.querySelectorAll(
+    '.scroll-fade-up, .scroll-fade-left, .scroll-fade-right, .scroll-scale-in'
+  );
+
+  if (reduceMotion) {
+    // Skip animations if user prefers reduced motion
+    animatedElements.forEach((el) => el.classList.add('is-visible'));
+    return;
+  }
+
+  const scrollObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          // Once revealed, no need to keep observing
+          scrollObserver.unobserve(entry.target);
+        }
+      });
+    },
+    {
+      threshold: 0.12,
+      rootMargin: '0px 0px -60px 0px'
+    }
+  );
+
+  animatedElements.forEach((el) => scrollObserver.observe(el));
+}
+
+initScrollAnimations();
