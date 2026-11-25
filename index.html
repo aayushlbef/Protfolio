@@ -48,67 +48,78 @@
         </button>
         <h2 class="section-title">About Me</h2>
       </div>
-      <div class="section-body">
-        <div class="about-hero">
-          <div class="about-avatar">
-            <img src="./images/About Me.JPG" alt="Aayush Kumar Gupta" />
-          </div>
-          <div class="about-info">
-            <h3>Aayush Kumar Gupta</h3>
-            <p class="about-title">Creative Developer &amp; Security Enthusiast</p>
-            <div class="about-meta">
-              <span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/>
-                </svg>
-                Kathmandu, Nepal
-              </span>
-              <span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" fill="currentColor"/>
-                </svg>
-                Lord Buddha Education Foundation (Asia Pacific University)
-              </span>
+      <div class="section-body about-section-body">
+        <div class="about-layout">
+          <!-- Left Column: Profile Card -->
+          <div class="about-profile-card">
+            <div class="about-avatar-wrap">
+              <img src="./images/About Me.JPG" alt="Aayush Kumar Gupta" class="about-avatar" />
+            </div>
+            <div class="about-profile-info">
+              <h3 class="about-name">Aayush Kumar Gupta</h3>
+              <p class="about-title">Creative Developer &amp; Security Enthusiast</p>
+              <div class="about-meta">
+                <span class="about-meta-item">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/>
+                  </svg>
+                  Kathmandu, Nepal
+                </span>
+                <span class="about-meta-item">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" fill="currentColor"/>
+                  </svg>
+                  Lord Buddha Education Foundation
+                </span>
+              </div>
+              <div class="social-row">
+                <a class="social-link" href="https://github.com/aayushlbef" target="_blank" rel="noopener noreferrer" title="GitHub">
+                  <i class="fab fa-github"></i>
+                </a>
+                <a class="social-link" href="https://www.linkedin.com/in/guptakaayush/" target="_blank" rel="noopener noreferrer" title="LinkedIn">
+                  <i class="fab fa-linkedin-in"></i>
+                </a>
+                <a class="social-link" href="https://x.com/Aayush2326v" target="_blank" rel="noopener noreferrer" title="X / Twitter">
+                  <i class="fab fa-x-twitter"></i>
+                </a>
+                <a class="social-link" href="https://youtube.com/@GupLogy" target="_blank" rel="noopener noreferrer" title="YouTube">
+                  <i class="fab fa-youtube"></i>
+                </a>
+                <a class="social-link" href="https://wa.me/9779767250246" target="_blank" rel="noopener noreferrer" title="WhatsApp">
+                  <i class="fab fa-whatsapp"></i>
+                </a>
+                <a class="social-link" href="mailto:aayushgupta@example.com" title="Email">
+                  <i class="fas fa-envelope"></i>
+                </a>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="about-bio">
-          <p>I am a Computer Science and IT student driven by a passion for building robust software and understanding modern system architectures. My technical focus spans cross-platform application development, network security, and digital forensics. From engineering desktop applications in C++ and Python—such as the open-source Nepali Date Widget—to exploring vulnerability analysis and system integrity, I bridge code craft with core security fundamentals.</p>
-          <p>Beyond engineering, I share hardware insights and tech tutorials through my YouTube channel, GupLogy, constantly aiming to turn complex technical challenges into clean, open-source solutions.</p>
-        </div>
+          <!-- Right Column: Details & Goals -->
+          <div class="about-details-col">
+            <div class="about-card about-bio-card">
+              <h4>Background &amp; Focus</h4>
+              <p>I am a Computer Science &amp; IT student driven by a passion for building robust software and understanding modern system architectures. My technical focus spans cross-platform application development, network security, and digital forensics.</p>
+              <p>From engineering desktop applications in C++ and Python—such as the open-source Nepali Date Widget—to exploring vulnerability analysis, I bridge code craft with core security fundamentals. I also share hardware insights and tech tutorials through my YouTube channel, GupLogy.</p>
+            </div>
 
-        <div class="about-interests">
-          <span class="about-pill">Open Source Contributor</span>
-          <span class="about-pill">Tech YouTuber (GupLogy)</span>
-          <span class="about-pill">Hardware Enthusiast</span>
-          <span class="about-pill">Cybersecurity Researcher</span>
-        </div>
+            <div class="about-card about-focus-card">
+              <h4>Areas of Focus</h4>
+              <div class="about-interests">
+                <span class="about-pill"><i class="fas fa-code-branch"></i> Open Source Contributor</span>
+                <span class="about-pill"><i class="fab fa-youtube"></i> Tech YouTuber (GupLogy)</span>
+                <span class="about-pill"><i class="fas fa-microchip"></i> Hardware Enthusiast</span>
+                <span class="about-pill"><i class="fas fa-shield-alt"></i> Cybersecurity Researcher</span>
+                <span class="about-pill"><i class="fas fa-desktop"></i> Cross-Platform Apps</span>
+                <span class="about-pill"><i class="fas fa-search"></i> Digital Forensics</span>
+              </div>
+            </div>
 
-        <div class="about-goals">
-          <h4>Career Goals</h4>
-          <p>To build secure, elegant software and bridge the gap between usability and system integrity—while helping others learn through open-source and content creation.</p>
-        </div>
-
-        <div class="social-row">
-          <a class="social-link" href="https://github.com/aayushlbef" target="_blank" rel="noopener noreferrer" title="GitHub">
-            <i class="fab fa-github"></i>
-          </a>
-          <a class="social-link" href="https://www.linkedin.com/in/guptakaayush/" target="_blank" rel="noopener noreferrer" title="LinkedIn">
-            <i class="fab fa-linkedin-in"></i>
-          </a>
-          <a class="social-link" href="https://x.com/Aayush2326v" target="_blank" rel="noopener noreferrer" title="X / Twitter">
-            <i class="fab fa-x-twitter"></i>
-          </a>
-          <a class="social-link" href="https://youtube.com/@GupLogy" target="_blank" rel="noopener noreferrer" title="YouTube">
-            <i class="fab fa-youtube"></i>
-          </a>
-          <a class="social-link" href="https://wa.me/9779767250246" target="_blank" rel="noopener noreferrer" title="WhatsApp">
-            <i class="fab fa-whatsapp"></i>
-          </a>
-          <a class="social-link" href="mailto:aayushgupta@example.com" title="Email">
-            <i class="fas fa-envelope"></i>
-          </a>
+            <div class="about-card about-goals-card">
+              <h4>Career Goals</h4>
+              <p>To build secure, elegant software and bridge the gap between usability and system integrity—while empowering developers and tech enthusiasts through open-source and content creation.</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>

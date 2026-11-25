@@ -313,161 +313,194 @@ body.view-section[data-active-section="contact"]      #section-contact {
 }
 
 /* ────────────────────────────────────────────────────────────
-   7. ABOUT SECTION
+   7. ABOUT SECTION — One-Page Fitted Layout
    ──────────────────────────────────────────────────────────── */
-.about-hero {
+#section-about .section-body {
+  padding: 8px 36px 16px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  height: calc(100% - 44px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.about-layout {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 48px;
-  align-items: start;
-  margin-bottom: 40px;
+  grid-template-columns: 310px 1fr;
+  gap: 20px;
+  align-items: stretch;
+  width: 100%;
+}
+
+.about-profile-card {
+  background: var(--win-glass);
+  border: 1px solid var(--win-glass-border);
+  border-radius: var(--win-radius-lg);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  justify-content: space-between;
 }
 
 .about-avatar-wrap {
-  position: relative;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  margin-bottom: 10px;
+  flex-shrink: 0;
 }
 
 .about-avatar {
   width: 100%;
-  aspect-ratio: 3 / 4;
+  height: 100%;
   object-fit: cover;
-  border-radius: var(--win-radius-lg);
-  border: 1px solid var(--win-glass-border);
-  box-shadow: var(--win-shadow);
+  object-position: center 20%;
 }
 
-.about-info {
+.about-profile-info {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
 }
 
 .about-name {
-  font-size: 2rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--win-text);
-  letter-spacing: -0.5px;
   line-height: 1.2;
 }
 
 .about-title {
-  font-size: 1.1rem;
-  font-weight: 400;
+  font-size: 0.8rem;
   color: var(--win-accent);
-  margin-top: -8px;
+  font-weight: 500;
 }
 
 .about-meta {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px 24px;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  margin: 4px 0 6px;
 }
 
 .about-meta-item {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.875rem;
+  font-size: 0.74rem;
   color: var(--win-text-sec);
 }
 
-.about-meta-item svg,
-.about-meta-item i {
-  width: 14px;
-  height: 14px;
+.about-meta-item svg {
   color: var(--win-accent);
   flex-shrink: 0;
-  font-size: 14px;
 }
 
-.about-bio {
-  font-size: 0.95rem;
-  color: var(--win-text-sec);
-  line-height: 1.75;
+.about-details-col {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  justify-content: space-between;
 }
 
-.about-interests-label,
-.about-section-label {
-  font-size: 0.75rem;
+.about-card {
+  background: var(--win-glass);
+  border: 1px solid var(--win-glass-border);
+  border-radius: var(--win-radius-lg);
+  padding: 14px 18px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.about-card h4 {
+  font-size: 0.74rem;
   font-family: var(--font-mono);
   text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--win-text-muted);
-  margin-bottom: 10px;
+  letter-spacing: 1.2px;
+  color: var(--win-accent);
+  margin-bottom: 6px;
+}
+
+.about-bio-card p {
+  font-size: 0.84rem;
+  color: var(--win-text-sec);
+  line-height: 1.5;
+  margin-bottom: 5px;
+}
+
+.about-bio-card p:last-child {
+  margin-bottom: 0;
+}
+
+.about-goals-card p {
+  font-size: 0.84rem;
+  color: var(--win-text-sec);
+  line-height: 1.5;
 }
 
 .about-interests {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .about-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 14px;
-  border-radius: 20px;
-  background: var(--win-glass);
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--win-glass-border);
-  font-size: 0.82rem;
+  font-size: 0.74rem;
   color: var(--win-text-sec);
-  transition: background 0.18s ease, border-color 0.18s ease;
+  transition: all 0.18s ease;
 }
 
 .about-pill:hover {
-  background: var(--win-glass-hover);
-  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: var(--win-text);
 }
 
-.about-goals {
-  margin-top: 32px;
-  padding: 24px;
-  background: var(--win-glass);
-  border: 1px solid var(--win-glass-border);
-  border-radius: var(--win-radius-lg);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.about-goals h4 {
-  font-size: 0.85rem;
-  font-family: var(--font-mono);
-  text-transform: uppercase;
-  letter-spacing: 1px;
+.about-pill i {
   color: var(--win-accent);
-  margin-bottom: 12px;
-}
-
-.about-goals p {
-  font-size: 0.9rem;
-  color: var(--win-text-sec);
-  line-height: 1.7;
+  font-size: 10px;
 }
 
 .social-row {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
-  margin-top: 8px;
+  justify-content: center;
+  margin-top: 4px;
 }
 
 .social-link {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: var(--win-glass);
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--win-glass-border);
   color: var(--win-text-sec);
-  font-size: 16px;
-  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
-  text-decoration: none;
+  font-size: 13px;
+  transition: all 0.18s ease;
 }
 
 .social-link:hover {
@@ -1198,9 +1231,9 @@ body.view-section[data-active-section="contact"]      #section-contact {
     padding: 8px 16px;
   }
 
-  .about-hero {
-    grid-template-columns: 220px 1fr;
-    gap: 32px;
+  .about-layout {
+    grid-template-columns: 260px 1fr;
+    gap: 16px;
   }
 
   .section-body {
@@ -1230,14 +1263,16 @@ body.view-section[data-active-section="contact"]      #section-contact {
     padding: 24px 20px;
   }
 
-  /* About: single column */
-  .about-hero {
-    grid-template-columns: 1fr;
+  /* About: single column on mobile */
+  #section-about .section-body {
+    overflow-y: auto;
+    height: auto;
+    justify-content: flex-start;
   }
 
-  .about-avatar {
-    aspect-ratio: 4 / 3;
-    max-width: 280px;
+  .about-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   /* Contact: single column */
