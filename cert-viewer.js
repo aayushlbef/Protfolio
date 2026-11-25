@@ -69,7 +69,6 @@ function onKeyDown(e) {
 /** Bind click listeners on all .cert-card elements */
 export function initCertViewer() {
   const cards = document.querySelectorAll('.cert-card');
-  const sectionIframe = document.getElementById('certSectionIframe');
 
   cards.forEach((card, idx) => {
     const certIndex = card.hasAttribute('data-cert-index')
@@ -79,11 +78,6 @@ export function initCertViewer() {
     card.addEventListener('click', () => {
       const title = card.querySelector('.cert-info h4')?.textContent || '';
       const issuer = card.querySelector('.cert-issuer')?.textContent || '';
-
-      // Also command the in-section 3D paper stage to switch to this certificate
-      if (sectionIframe?.contentWindow) {
-        sectionIframe.contentWindow.postMessage({ type: 'cert-show', index: certIndex }, '*');
-      }
 
       // Open fullscreen 3D modal with waving paper
       openCertViewer(certIndex, title, issuer);
