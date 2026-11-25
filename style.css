@@ -1340,3 +1340,139 @@ body.view-section[data-active-section="contact"]      #section-contact {
     transform: none;
   }
 }
+
+
+/* ────────────────────────────────────────────────────────────
+   21. 3D CERTIFICATE VIEWER
+   ──────────────────────────────────────────────────────────── */
+.cert-viewer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cert-viewer-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cert-viewer-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
+/* 3D scene container */
+.cert-viewer-scene {
+  perspective: 1200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The 3D paper */
+.cert-viewer-paper {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.08s linear;
+  cursor: grab;
+  will-change: transform;
+  /* Paper shadow */
+  filter: drop-shadow(0 20px 60px rgba(0, 0, 0, 0.6));
+}
+
+.cert-viewer-paper:active {
+  cursor: grabbing;
+}
+
+.cert-viewer-img {
+  display: block;
+  max-width: 70vw;
+  max-height: 65vh;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+/* Info below the paper */
+.cert-viewer-info {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cert-viewer-info h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--win-text);
+}
+
+.cert-viewer-info span {
+  font-size: 0.85rem;
+  color: var(--win-accent);
+  font-weight: 500;
+}
+
+/* Close button */
+.cert-viewer-close {
+  position: absolute;
+  top: -40px;
+  right: -20px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--win-text-sec);
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.cert-viewer-close:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+/* Hint text */
+.cert-viewer-hint {
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  color: var(--win-text-muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Make cert cards clickable */
+.cert-card {
+  cursor: none;
+}
+
+@media (max-width: 768px) {
+  .cert-viewer-img {
+    max-width: 90vw;
+    max-height: 55vh;
+  }
+
+  .cert-viewer-close {
+    top: -36px;
+    right: 0;
+  }
+}

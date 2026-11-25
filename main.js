@@ -6,6 +6,7 @@
 import { portfolioData } from './portfolio-data.js';
 import { animate } from 'animejs';
 import { initDesktopBackground } from './desktop-bg.js';
+import { initCertViewer } from './cert-viewer.js';
 
 /* ==========================================================================
    SVG TEMPLATES
@@ -261,6 +262,9 @@ function init() {
 
   // Initialize Three.js animated desktop background
   initDesktopBackground();
+
+  // Initialize 3D certificate viewer
+  initCertViewer();
 
   console.log('Portfolio ready!');
 }
