@@ -1,15 +1,10 @@
 /**
  * cursor-swarm.js
- * Viral "Multiplayer Cursor Swarm" page-builder animation.
- *
- * Features:
- * - 14 Figma-style colored cursors with floating pill nametags (max 6 on mobile < 640px)
- * - Smooth spring-physics motion loop (60 FPS, transform: translate3d)
- * - Build-on-scroll / section-open via IntersectionObserver:
- *     * Containers & Cards: Figma bounding box + corner handles + dimension pill
- *     * Headings & Text: Fast smooth reveal with cursor tracking the line
- *     * Images & Media: Top-to-bottom wireframe scanline reveal with corner cursor
- * - Interactive trailing when moving real mouse, gentle orbit ring after 1.5s idle
+ * Multiplayer Cursor Swarm page-builder animation:
+ * 1. Page load (0s - 1.0s): Blank desktop while cursors orbit in a circle at screen center.
+ * 2. Build phase (1.0s+): Cursors fan out to build desktop icons & taskbar in sync.
+ * 3. Section open / scroll: Cursors reappear briefly to build newly revealed elements in sync.
+ * 4. Idle / Done: Cursors smoothly disappear until something changes on screen.
  */
 
 const AGENT_CONFIGS = [
@@ -47,9 +42,9 @@ function createCursorSVG(color) {
 export function initCursorSwarm() {
   if (typeof window === 'undefined') return null;
 
-  // Create non-blocking overlay
+  // Create non-blocking overlay (visible during intro & builds, hidden when idle)
   const overlay = document.createElement('div');
-  overlay.className = 'swarm-overlay';
+  overlay.className = 'swarm-overlay is-active';
   overlay.id = 'swarmOverlay';
   overlay.setAttribute('aria-hidden', 'true');
 
@@ -66,16 +61,34 @@ export function initCursorSwarm() {
   // State
   let isMobile = window.innerWidth < 640;
   let activeCount = isMobile ? 6 : 14;
-  let mouseX = window.innerWidth * 0.5;
-  let mouseY = window.innerHeight * 0.5;
-  let lastMouseMoveAt = performance.now() - 2000; // start in gentle orbit until user moves mouse
-  let hasMouseMoved = false;
   let rafId = null;
+
+  const introStartAt = performance.now();
+  const INTRO_ORBIT_MS = 1000; // 1 second circular orbit in center with blank page
+  let introOrbitActive = true;
+  let lastBuildEndAt = introStartAt + INTRO_ORBIT_MS + 100;
 
   const builtElements = new WeakSet();
   const observedSections = new WeakSet();
 
-  // Build agent pool (always create 14, toggle visibility based on breakpoint)
+  // Hide desktop icons & taskbar initially until cursors finish the 1s orbit and build them
+  const desktopIcons = Array.from(document.querySelectorAll('.desktop-icon'));
+  const taskbar = document.getElementById('taskbar');
+  desktopIcons.forEach((el) => el.classList.add('swarm-hidden'));
+  if (taskbar) taskbar.classList.add('swarm-hidden');
+
+  // Pre-hide section elements until their section is opened / scrolled into view
+  document
+    .querySelectorAll(
+      `.section-panel ${SELECTORS.containers.split(',').join(', .section-panel ')}, .section-panel ${SELECTORS.texts.split(',').join(', .section-panel ')}, .section-panel ${SELECTORS.images.split(',').join(', .section-panel ')}`
+    )
+    .forEach((el) => el.classList.add('swarm-hidden'));
+
+  // Build agent pool (14 desktop, 6 mobile)
+  const cx0 = window.innerWidth * 0.5;
+  const cy0 = window.innerHeight * 0.5;
+  const orbitR0 = isMobile ? 58 : 92;
+
   const agents = AGENT_CONFIGS.map((cfg, i) => {
     const el = document.createElement('div');
     el.className = 'swarm-cursor';
@@ -85,10 +98,9 @@ export function initCursorSwarm() {
     `;
     cursorLayer.appendChild(el);
 
-    // Spawn around edges organically
     const angle = (i / AGENT_CONFIGS.length) * Math.PI * 2;
-    const startX = window.innerWidth * 0.5 + Math.cos(angle) * (window.innerWidth * 0.45);
-    const startY = window.innerHeight * 0.5 + Math.sin(angle) * (window.innerHeight * 0.45);
+    const startX = cx0 + Math.cos(angle) * orbitR0;
+    const startY = cy0 + Math.sin(angle) * orbitR0;
 
     return {
       index: i,
@@ -101,11 +113,8 @@ export function initCursorSwarm() {
       vy: 0,
       targetX: startX,
       targetY: startY,
-      // Slightly varied spring constants for organic staggered feel
-      stiffness: 0.065 + (i % 5) * 0.012,
-      damping: 0.72 + (i % 4) * 0.03,
-      trailOffsetAngle: (i / 14) * Math.PI * 2,
-      trailDist: 38 + (i % 4) * 20,
+      stiffness: 0.14 + (i % 4) * 0.02,
+      damping: 0.72,
       busyUntil: 0,
       taskFn: null,
       active: i < activeCount,
@@ -121,31 +130,20 @@ export function initCursorSwarm() {
     });
   }
   syncAgentCount();
-
   window.addEventListener('resize', syncAgentCount, { passive: true });
-
-  // Track real mouse
-  function onPointerMove(x, y) {
-    mouseX = x;
-    mouseY = y;
-    lastMouseMoveAt = performance.now();
-    hasMouseMoved = true;
-  }
-
-  window.addEventListener('mousemove', (e) => onPointerMove(e.clientX, e.clientY), { passive: true });
-  window.addEventListener('touchmove', (e) => {
-    if (e.touches.length > 0) {
-      onPointerMove(e.touches[0].clientX, e.touches[0].clientY);
-    }
-  }, { passive: true });
 
   /* ==========================================================================
      DISPATCH HELPERS
      ========================================================================== */
+  function wakeSwarm(durationMs) {
+    const now = performance.now();
+    lastBuildEndAt = Math.max(lastBuildEndAt, now + durationMs);
+    overlay.classList.add('is-active');
+  }
+
   function pickNearbyAgents(cx, cy, count, durationMs) {
     const now = performance.now();
     const pool = agents.filter((a) => a.active && a.busyUntil <= now);
-    // Fallback to any active agents if all are busy
     const candidates = pool.length >= count ? pool : agents.filter((a) => a.active);
 
     const sorted = [...candidates].sort((a, b) => {
@@ -158,25 +156,28 @@ export function initCursorSwarm() {
     chosen.forEach((a) => {
       a.busyUntil = now + durationMs;
     });
+    wakeSwarm(durationMs);
     return chosen;
   }
 
   /* ==========================================================================
-     ELEMENT BUILD EFFECTS (0.8s - 1.1s)
+     SYNCED BUILD EFFECTS (cursors move first, element builds in sync)
      ========================================================================== */
 
-  function buildContainer(el) {
+  function buildContainer(el, duration = 750) {
     const rect = el.getBoundingClientRect();
-    if (rect.width < 10 || rect.height < 10) return;
+    if (rect.width < 10 || rect.height < 10) {
+      el.classList.remove('swarm-hidden');
+      return;
+    }
 
-    const duration = 900;
     const startTime = performance.now();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     const dispatched = pickNearbyAgents(cx, cy, 2, duration);
     const accentColor = dispatched[0]?.color || '#3b82f6';
 
-    // Create Figma-style bounding box wireframe
+    // Draw Figma wireframe box immediately as cursors arrive
     const box = document.createElement('div');
     box.className = 'swarm-bbox';
     box.style.left = `${rect.left}px`;
@@ -193,46 +194,46 @@ export function initCursorSwarm() {
     `;
     wireframeLayer.appendChild(box);
 
-    // Subtle fade-in of the real element (force reflow so CSS transition always fires)
-    el.classList.add('swarm-building-container');
-    void el.offsetWidth;
-    el.classList.add('swarm-built');
-
-    // Assign cursors to opposite corners and sweep slightly
     if (dispatched[0]) {
       dispatched[0].taskFn = (now) => {
         const p = Math.min(1, (now - startTime) / duration);
         const r = el.getBoundingClientRect();
-        dispatched[0].targetX = r.left + r.width * (0.05 + p * 0.15);
-        dispatched[0].targetY = r.top + 6;
+        dispatched[0].targetX = r.left + r.width * (0.08 + p * 0.2);
+        dispatched[0].targetY = r.top + 8;
       };
     }
     if (dispatched[1]) {
       dispatched[1].taskFn = (now) => {
         const p = Math.min(1, (now - startTime) / duration);
         const r = el.getBoundingClientRect();
-        dispatched[1].targetX = r.right - r.width * (0.05 + p * 0.15);
-        dispatched[1].targetY = r.bottom - 6;
+        dispatched[1].targetX = r.right - r.width * (0.08 + p * 0.2);
+        dispatched[1].targetY = r.bottom - 8;
       };
     }
 
+    // Reveal element in sync after cursor reaches the bounding box (~220ms travel)
+    setTimeout(() => {
+      el.classList.remove('swarm-hidden');
+      el.classList.add('swarm-building-container');
+      void el.offsetWidth;
+      el.classList.add('swarm-built');
+    }, 220);
+
     setTimeout(() => {
       box.classList.add('is-fading');
-      setTimeout(() => box.remove(), 250);
-    }, duration - 180);
+      setTimeout(() => box.remove(), 220);
+    }, duration - 120);
   }
 
-  function buildText(el) {
+  function buildText(el, duration = 700) {
     const rect = el.getBoundingClientRect();
-    if (rect.width < 10 || rect.height < 8) return;
+    if (rect.width < 10 || rect.height < 8) {
+      el.classList.remove('swarm-hidden');
+      return;
+    }
 
-    const duration = 850;
     const startTime = performance.now();
-    const dispatched = pickNearbyAgents(rect.left + rect.width * 0.5, rect.top + rect.height * 0.5, 1, duration);
-
-    el.classList.add('swarm-building-text');
-    void el.offsetWidth;
-    el.classList.add('swarm-built');
+    const dispatched = pickNearbyAgents(rect.left, rect.top + rect.height * 0.5, 1, duration);
 
     if (dispatched[0]) {
       dispatched[0].taskFn = (now) => {
@@ -242,18 +243,26 @@ export function initCursorSwarm() {
         dispatched[0].targetY = r.top + r.height * 0.6;
       };
     }
+
+    setTimeout(() => {
+      el.classList.remove('swarm-hidden');
+      el.classList.add('swarm-building-text');
+      void el.offsetWidth;
+      el.classList.add('swarm-built');
+    }, 160);
   }
 
-  function buildImage(el) {
+  function buildImage(el, duration = 800) {
     const rect = el.getBoundingClientRect();
-    if (rect.width < 16 || rect.height < 16) return;
+    if (rect.width < 16 || rect.height < 16) {
+      el.classList.remove('swarm-hidden');
+      return;
+    }
 
-    const duration = 950;
     const startTime = performance.now();
     const dispatched = pickNearbyAgents(rect.right, rect.top, 2, duration);
     const accentColor = dispatched[0]?.color || '#00D4FF';
 
-    // Wireframe scanline box
     const scanBox = document.createElement('div');
     scanBox.className = 'swarm-scanbox';
     scanBox.style.left = `${rect.left}px`;
@@ -263,10 +272,6 @@ export function initCursorSwarm() {
     scanBox.style.borderColor = accentColor;
     scanBox.innerHTML = `<div class="swarm-scanline" style="background:linear-gradient(90deg, transparent, ${accentColor}, transparent); box-shadow: 0 0 10px ${accentColor};"></div>`;
     wireframeLayer.appendChild(scanBox);
-
-    el.classList.add('swarm-building-image');
-    void el.offsetWidth;
-    el.classList.add('swarm-built');
 
     if (dispatched[0]) {
       dispatched[0].taskFn = (now) => {
@@ -285,18 +290,28 @@ export function initCursorSwarm() {
     }
 
     setTimeout(() => {
+      el.classList.remove('swarm-hidden');
+      el.classList.add('swarm-building-image');
+      void el.offsetWidth;
+      el.classList.add('swarm-built');
+    }, 180);
+
+    setTimeout(() => {
       scanBox.classList.add('is-fading');
-      setTimeout(() => scanBox.remove(), 250);
-    }, duration - 150);
+      setTimeout(() => scanBox.remove(), 220);
+    }, duration - 120);
   }
 
   function triggerBuildForElement(el) {
     if (!el || builtElements.has(el)) return;
-    // Only build if element is actually visible (not inside a hidden section panel)
+
     const panel = el.closest('.section-panel');
     if (panel) {
       const activeSection = document.body.getAttribute('data-active-section');
-      if (!document.body.classList.contains('view-section') || panel.getAttribute('data-section') !== activeSection) {
+      if (
+        !document.body.classList.contains('view-section') ||
+        panel.getAttribute('data-section') !== activeSection
+      ) {
         return;
       }
     }
@@ -309,36 +324,70 @@ export function initCursorSwarm() {
       buildText(el);
     } else if (el.matches(SELECTORS.containers)) {
       buildContainer(el);
+    } else {
+      el.classList.remove('swarm-hidden');
     }
   }
 
   /* ==========================================================================
-     INTERSECTION OBSERVER FOR SCROLLING INSIDE SECTIONS & DESKTOP
+     1.0s CENTER ORBIT INTRO -> THEN BUILD DESKTOP
      ========================================================================== */
-  function observeContainer(rootEl) {
-    if (!rootEl || observedSections.has(rootEl)) return;
-    observedSections.add(rootEl);
+  setTimeout(() => {
+    introOrbitActive = false;
 
-    const targets = rootEl.querySelectorAll(
+    // Reveal background canvas
+    if (bgCanvas) {
+      bgCanvas.classList.remove('swarm-hidden');
+      bgCanvas.classList.add('swarm-building-container');
+      void bgCanvas.offsetWidth;
+      bgCanvas.classList.add('swarm-built');
+    }
+
+    // Build desktop icons in staggered sync
+    desktopIcons.forEach((icon, i) => {
+      setTimeout(() => {
+        triggerBuildForElement(icon);
+      }, i * 75);
+    });
+
+    // Build taskbar
+    if (taskbar) {
+      setTimeout(() => {
+        taskbar.classList.remove('swarm-hidden');
+        taskbar.classList.add('swarm-building-container');
+        void taskbar.offsetWidth;
+        taskbar.classList.add('swarm-built');
+        wakeSwarm(600);
+      }, desktopIcons.length * 75);
+    }
+  }, INTRO_ORBIT_MS);
+
+  /* ==========================================================================
+     INTERSECTION OBSERVER FOR SCROLLING INSIDE SECTIONS
+     ========================================================================== */
+  function observeSectionBody(body) {
+    if (!body || observedSections.has(body)) return;
+    observedSections.add(body);
+
+    const targets = body.querySelectorAll(
       `${SELECTORS.containers}, ${SELECTORS.texts}, ${SELECTORS.images}`
     );
 
     const io = new IntersectionObserver(
       (entries) => {
-        // Stagger simultaneous entries slightly for organic wave
         let delay = 0;
         entries.forEach((entry) => {
           if (entry.isIntersecting && !builtElements.has(entry.target)) {
             const target = entry.target;
             setTimeout(() => triggerBuildForElement(target), delay);
-            delay = Math.min(delay + 45, 360);
+            delay = Math.min(delay + 55, 380);
             io.unobserve(target);
           }
         });
       },
       {
-        root: rootEl.classList.contains('section-body') ? rootEl : null,
-        threshold: 0.08,
+        root: body,
+        threshold: 0.06,
         rootMargin: '0px 0px -10px 0px',
       }
     );
@@ -346,28 +395,17 @@ export function initCursorSwarm() {
     targets.forEach((t) => io.observe(t));
   }
 
-  // Observe desktop grid on startup
-  const desktopGrid = document.getElementById('desktopGrid');
-  if (desktopGrid) {
-    observeContainer(desktopGrid);
-  }
+  document.querySelectorAll('.section-panel .section-body').forEach(observeSectionBody);
 
-  // Observe all section bodies
-  document.querySelectorAll('.section-panel .section-body').forEach((body) => {
-    observeContainer(body);
-  });
-
-  /**
-   * Called by main.js whenever a section folder is opened so visible elements
-   * inside that section immediately trigger their collaborative build animation.
-   */
   function triggerSectionBuild(sectionId) {
     const panel = document.getElementById(`section-${sectionId}`);
     if (!panel) return;
     const body = panel.querySelector('.section-body');
     if (!body) return;
 
-    // Wait for panel slide-in transition to settle so bounding rects are accurate
+    // Wake cursors immediately as section opens
+    wakeSwarm(1100);
+
     setTimeout(() => {
       const targets = body.querySelectorAll(
         `${SELECTORS.containers}, ${SELECTORS.texts}, ${SELECTORS.images}`
@@ -380,51 +418,55 @@ export function initCursorSwarm() {
         const r = el.getBoundingClientRect();
         if (r.bottom >= bodyRect.top && r.top <= bodyRect.bottom + 40) {
           setTimeout(() => triggerBuildForElement(el), delay);
-          delay = Math.min(delay + 50, 400);
+          delay = Math.min(delay + 55, 420);
         }
       });
-    }, 320);
+    }, 300);
   }
 
   /* ==========================================================================
-     60 FPS SPRING PHYSICS LOOP
+     60 FPS SPRING PHYSICS LOOP + AUTO-HIDE WHEN NOTHING CHANGES
      ========================================================================== */
   function tick(now) {
     rafId = requestAnimationFrame(tick);
     if (document.hidden) return;
 
-    const isIdle = !hasMouseMoved || (now - lastMouseMoveAt > 1500);
-    const orbitBaseAngle = now * 0.00055; // gentle rotation speed
-    const orbitRadius = isMobile ? 72 : 112;
+    if (introOrbitActive) {
+      // Phase 1 (0s - 1.0s): Orbit in a circle at screen center
+      const cx = window.innerWidth * 0.5;
+      const cy = window.innerHeight * 0.5;
+      const r = isMobile ? 58 : 92;
+      const spin = now * 0.0045;
+
+      for (let i = 0; i < agents.length; i++) {
+        const a = agents[i];
+        if (!a.active) continue;
+        const angle = spin + (i / activeCount) * Math.PI * 2;
+        a.targetX = cx + Math.cos(angle) * r;
+        a.targetY = cy + Math.sin(angle) * r;
+      }
+    } else {
+      // Phase 2+: Check if any cursors are still building
+      const isBuilding = now <= lastBuildEndAt + 250;
+      if (!isBuilding) {
+        overlay.classList.remove('is-active');
+      }
+    }
 
     for (let i = 0; i < agents.length; i++) {
       const a = agents[i];
       if (!a.active) continue;
 
-      if (a.busyUntil > now && a.taskFn) {
+      if (!introOrbitActive && a.busyUntil > now && a.taskFn) {
         a.taskFn(now);
-      } else {
+      } else if (!introOrbitActive) {
         a.taskFn = null;
-        if (isIdle) {
-          // Gentle orbiting ring around real cursor (never obscuring center)
-          const angle = orbitBaseAngle + (i / activeCount) * Math.PI * 2;
-          const r = orbitRadius + Math.sin(now * 0.002 + i) * 14;
-          a.targetX = mouseX + Math.cos(angle) * r;
-          a.targetY = mouseY + Math.sin(angle) * r;
-        } else {
-          // Loosely trail behind real pointer with staggered offsets
-          const r = a.trailDist;
-          const angle = a.trailOffsetAngle + now * 0.0004;
-          a.targetX = mouseX + Math.cos(angle) * r;
-          a.targetY = mouseY + Math.sin(angle) * r;
-        }
       }
 
-      // Clamp target within viewport bounds so cursors stay visible
+      // Clamp within viewport
       a.targetX = Math.max(12, Math.min(window.innerWidth - 90, a.targetX));
       a.targetY = Math.max(12, Math.min(window.innerHeight - 36, a.targetY));
 
-      // Spring physics integration
       const ax = (a.targetX - a.x) * a.stiffness;
       const ay = (a.targetY - a.y) * a.stiffness;
       a.vx = (a.vx + ax) * a.damping;

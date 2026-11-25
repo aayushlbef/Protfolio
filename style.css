@@ -1519,6 +1519,17 @@ body.view-section[data-active-section="contact"]      #section-contact {
   z-index: 9995;
   pointer-events: none;
   overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.swarm-overlay.is-active {
+  opacity: 1;
+}
+
+.swarm-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 .swarm-wireframes,
