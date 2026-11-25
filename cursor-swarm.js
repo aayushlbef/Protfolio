@@ -115,8 +115,8 @@ export function initCursorSwarm() {
       vy: 0,
       targetX: startX,
       targetY: startY,
-      stiffness: 0.14 + (i % 4) * 0.02,
-      damping: 0.72,
+      stiffness: 0.20 + (i % 4) * 0.025,
+      damping: 0.68,
       busyUntil: 0,
       taskFn: null,
       active: i < activeCount,
@@ -166,7 +166,7 @@ export function initCursorSwarm() {
      SYNCED BUILD EFFECTS (cursors move first, element builds in sync)
      ========================================================================== */
 
-  function buildContainer(el, duration = 750) {
+  function buildContainer(el, duration = 900) {
     const rect = el.getBoundingClientRect();
     if (rect.width < 10 || rect.height < 10) {
       el.classList.remove('swarm-hidden');
@@ -174,57 +174,58 @@ export function initCursorSwarm() {
     }
 
     const startTime = performance.now();
+    const arriveDelay = 260;
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     const dispatched = pickNearbyAgents(cx, cy, 2, duration);
     const accentColor = dispatched[0]?.color || '#3b82f6';
 
-    // Draw Figma wireframe box immediately as cursors arrive
-    const box = document.createElement('div');
-    box.className = 'swarm-bbox';
-    box.style.left = `${rect.left}px`;
-    box.style.top = `${rect.top}px`;
-    box.style.width = `${rect.width}px`;
-    box.style.height = `${rect.height}px`;
-    box.style.borderColor = accentColor;
-    box.innerHTML = `
-      <span class="swarm-handle tl" style="border-color:${accentColor}"></span>
-      <span class="swarm-handle tr" style="border-color:${accentColor}"></span>
-      <span class="swarm-handle bl" style="border-color:${accentColor}"></span>
-      <span class="swarm-handle br" style="border-color:${accentColor}"></span>
-      <span class="swarm-dim-badge" style="background:${accentColor}">${Math.round(rect.width)} × ${Math.round(rect.height)}</span>
-    `;
-    wireframeLayer.appendChild(box);
-
     if (dispatched[0]) {
       dispatched[0].taskFn = (now) => {
-        const p = Math.min(1, (now - startTime) / duration);
+        const p = Math.max(0, Math.min(1, (now - startTime - arriveDelay) / (duration - arriveDelay)));
         const r = el.getBoundingClientRect();
-        dispatched[0].targetX = r.left + r.width * (0.08 + p * 0.2);
+        dispatched[0].targetX = r.left + r.width * (0.08 + p * 0.25);
         dispatched[0].targetY = r.top + 8;
       };
     }
     if (dispatched[1]) {
       dispatched[1].taskFn = (now) => {
-        const p = Math.min(1, (now - startTime) / duration);
+        const p = Math.max(0, Math.min(1, (now - startTime - arriveDelay) / (duration - arriveDelay)));
         const r = el.getBoundingClientRect();
-        dispatched[1].targetX = r.right - r.width * (0.08 + p * 0.2);
+        dispatched[1].targetX = r.right - r.width * (0.08 + p * 0.25);
         dispatched[1].targetY = r.bottom - 8;
       };
     }
 
-    // Reveal element in sync after cursor reaches the bounding box (~220ms travel)
+    // Wait for cursors to arrive before drawing wireframe and revealing element
     setTimeout(() => {
+      const r = el.getBoundingClientRect();
+      const box = document.createElement('div');
+      box.className = 'swarm-bbox';
+      box.style.left = `${r.left}px`;
+      box.style.top = `${r.top}px`;
+      box.style.width = `${r.width}px`;
+      box.style.height = `${r.height}px`;
+      box.style.borderColor = accentColor;
+      box.innerHTML = `
+        <span class="swarm-handle tl" style="border-color:${accentColor}"></span>
+        <span class="swarm-handle tr" style="border-color:${accentColor}"></span>
+        <span class="swarm-handle bl" style="border-color:${accentColor}"></span>
+        <span class="swarm-handle br" style="border-color:${accentColor}"></span>
+        <span class="swarm-dim-badge" style="background:${accentColor}">${Math.round(r.width)} × ${Math.round(r.height)}</span>
+      `;
+      wireframeLayer.appendChild(box);
+
       el.classList.remove('swarm-hidden');
       el.classList.add('swarm-building-container');
       void el.offsetWidth;
       el.classList.add('swarm-built');
-    }, 220);
 
-    setTimeout(() => {
-      box.classList.add('is-fading');
-      setTimeout(() => box.remove(), 220);
-    }, duration - 120);
+      setTimeout(() => {
+        box.classList.add('is-fading');
+        setTimeout(() => box.remove(), 220);
+      }, duration - arriveDelay - 120);
+    }, arriveDelay);
   }
 
   function buildText(el, duration = 700) {
@@ -335,7 +336,9 @@ export function initCursorSwarm() {
      1.0s CENTER ORBIT INTRO -> THEN BUILD DESKTOP (PORTRAIT + ICONS + TASKBAR)
      ========================================================================== */
   function buildPortraitCanvas(canvasEl) {
-    const duration = 950;
+    const arriveDelay = 280;
+    const sweepDuration = 900;
+    const totalDuration = arriveDelay + sweepDuration;
     const startTime = performance.now();
     const w = window.innerWidth;
     const h = window.innerHeight;
@@ -343,40 +346,22 @@ export function initCursorSwarm() {
     const left = (w - boxSize) * 0.5;
     const top = (h - boxSize) * 0.5;
 
-    const dispatched = pickNearbyAgents(w * 0.5, h * 0.5, 4, duration);
+    const dispatched = pickNearbyAgents(w * 0.5, h * 0.5, 4, totalDuration);
     const accentColor = dispatched[0]?.color || '#00D4FF';
 
-    // Figma bounding box + scanline over the center portrait
-    const box = document.createElement('div');
-    box.className = 'swarm-bbox';
-    box.style.left = `${left}px`;
-    box.style.top = `${top}px`;
-    box.style.width = `${boxSize}px`;
-    box.style.height = `${boxSize}px`;
-    box.style.borderColor = accentColor;
-    box.innerHTML = `
-      <span class="swarm-handle tl" style="border-color:${accentColor}"></span>
-      <span class="swarm-handle tr" style="border-color:${accentColor}"></span>
-      <span class="swarm-handle bl" style="border-color:${accentColor}"></span>
-      <span class="swarm-handle br" style="border-color:${accentColor}"></span>
-      <span class="swarm-dim-badge" style="background:${accentColor}">${Math.round(boxSize)} × ${Math.round(boxSize)}</span>
-      <div class="swarm-scanline" style="background:linear-gradient(90deg, transparent, ${accentColor}, transparent); box-shadow: 0 0 12px ${accentColor};"></div>
-    `;
-    wireframeLayer.appendChild(box);
-
-    // Assign 4 cursors to corners & sweeping scanline
+    // Assign 4 cursors to fly to corners first, then sweep in sync with scanline
     if (dispatched[0]) {
       dispatched[0].taskFn = (now) => {
-        const p = Math.min(1, (now - startTime) / duration);
+        const p = Math.max(0, Math.min(1, (now - startTime - arriveDelay) / sweepDuration));
         dispatched[0].targetX = left + boxSize - 10;
         dispatched[0].targetY = top + boxSize * p;
       };
     }
     if (dispatched[1]) {
       dispatched[1].taskFn = (now) => {
-        const p = Math.min(1, (now - startTime) / duration);
+        const p = Math.max(0, Math.min(1, (now - startTime - arriveDelay) / sweepDuration));
         dispatched[1].targetX = left + 10;
-        dispatched[1].targetY = top + boxSize * (1 - p * 0.85);
+        dispatched[1].targetY = top + boxSize * p;
       };
     }
     if (dispatched[2]) {
@@ -392,18 +377,35 @@ export function initCursorSwarm() {
       };
     }
 
-    // Reveal portrait canvas in sync with top-to-bottom scanline
+    // Start bounding box, scanline, and portrait reveal together once cursors arrive
     setTimeout(() => {
+      const box = document.createElement('div');
+      box.className = 'swarm-bbox';
+      box.style.left = `${left}px`;
+      box.style.top = `${top}px`;
+      box.style.width = `${boxSize}px`;
+      box.style.height = `${boxSize}px`;
+      box.style.borderColor = accentColor;
+      box.innerHTML = `
+        <span class="swarm-handle tl" style="border-color:${accentColor}"></span>
+        <span class="swarm-handle tr" style="border-color:${accentColor}"></span>
+        <span class="swarm-handle bl" style="border-color:${accentColor}"></span>
+        <span class="swarm-handle br" style="border-color:${accentColor}"></span>
+        <span class="swarm-dim-badge" style="background:${accentColor}">${Math.round(boxSize)} × ${Math.round(boxSize)}</span>
+        <div class="swarm-scanline" style="background:linear-gradient(90deg, transparent, ${accentColor}, transparent); box-shadow: 0 0 12px ${accentColor};"></div>
+      `;
+      wireframeLayer.appendChild(box);
+
       canvasEl.classList.remove('swarm-hidden');
       canvasEl.classList.add('swarm-building-image');
       void canvasEl.offsetWidth;
       canvasEl.classList.add('swarm-built');
-    }, 150);
 
-    setTimeout(() => {
-      box.classList.add('is-fading');
-      setTimeout(() => box.remove(), 250);
-    }, duration - 120);
+      setTimeout(() => {
+        box.classList.add('is-fading');
+        setTimeout(() => box.remove(), 250);
+      }, sweepDuration - 100);
+    }, arriveDelay);
   }
 
   setTimeout(() => {
@@ -418,7 +420,7 @@ export function initCursorSwarm() {
     desktopIcons.forEach((icon, i) => {
       setTimeout(() => {
         triggerBuildForElement(icon);
-      }, 180 + i * 75);
+      }, 260 + i * 110);
     });
 
     // Build taskbar
@@ -429,7 +431,7 @@ export function initCursorSwarm() {
         void taskbar.offsetWidth;
         taskbar.classList.add('swarm-built');
         wakeSwarm(600);
-      }, 180 + desktopIcons.length * 75);
+      }, 260 + desktopIcons.length * 110);
     }
   }, INTRO_ORBIT_MS);
 

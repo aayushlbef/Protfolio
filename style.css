@@ -1644,10 +1644,10 @@ body.view-section[data-active-section="contact"]      #section-contact {
 
 /* Element build-in transitions (0.8s - 0.95s) */
 .swarm-building-container {
-  opacity: 0.15;
-  transform: scale(0.985);
-  transition: opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.65s cubic-bezier(0.22, 1, 0.36, 1) !important;
 }
 
 .swarm-building-container.swarm-built {
