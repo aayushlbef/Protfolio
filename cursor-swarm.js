@@ -423,15 +423,11 @@ export function initCursorSwarm() {
       }, 260 + i * 110);
     });
 
-    // Build taskbar
+    // Build taskbar with cursors + Figma bounding box
     if (taskbar) {
       setTimeout(() => {
-        taskbar.classList.remove('swarm-hidden');
-        taskbar.classList.add('swarm-building-container');
-        void taskbar.offsetWidth;
-        taskbar.classList.add('swarm-built');
-        wakeSwarm(600);
-      }, 260 + desktopIcons.length * 110);
+        buildContainer(taskbar, 950);
+      }, 260 + desktopIcons.length * 90);
     }
   }, INTRO_ORBIT_MS);
 
