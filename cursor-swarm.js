@@ -47,10 +47,6 @@ function createCursorSVG(color) {
 export function initCursorSwarm() {
   if (typeof window === 'undefined') return null;
 
-  // Respect reduced-motion preference
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (reducedMotion) return null;
-
   // Create non-blocking overlay
   const overlay = document.createElement('div');
   overlay.className = 'swarm-overlay';
@@ -197,11 +193,10 @@ export function initCursorSwarm() {
     `;
     wireframeLayer.appendChild(box);
 
-    // Subtle fade-in of the real element
+    // Subtle fade-in of the real element (force reflow so CSS transition always fires)
     el.classList.add('swarm-building-container');
-    requestAnimationFrame(() => {
-      el.classList.add('swarm-built');
-    });
+    void el.offsetWidth;
+    el.classList.add('swarm-built');
 
     // Assign cursors to opposite corners and sweep slightly
     if (dispatched[0]) {
@@ -236,9 +231,8 @@ export function initCursorSwarm() {
     const dispatched = pickNearbyAgents(rect.left + rect.width * 0.5, rect.top + rect.height * 0.5, 1, duration);
 
     el.classList.add('swarm-building-text');
-    requestAnimationFrame(() => {
-      el.classList.add('swarm-built');
-    });
+    void el.offsetWidth;
+    el.classList.add('swarm-built');
 
     if (dispatched[0]) {
       dispatched[0].taskFn = (now) => {
@@ -271,9 +265,8 @@ export function initCursorSwarm() {
     wireframeLayer.appendChild(scanBox);
 
     el.classList.add('swarm-building-image');
-    requestAnimationFrame(() => {
-      el.classList.add('swarm-built');
-    });
+    void el.offsetWidth;
+    el.classList.add('swarm-built');
 
     if (dispatched[0]) {
       dispatched[0].taskFn = (now) => {
@@ -374,7 +367,7 @@ export function initCursorSwarm() {
     const body = panel.querySelector('.section-body');
     if (!body) return;
 
-    // Wait briefly for the panel slide-in transition to start
+    // Wait for panel slide-in transition to settle so bounding rects are accurate
     setTimeout(() => {
       const targets = body.querySelectorAll(
         `${SELECTORS.containers}, ${SELECTORS.texts}, ${SELECTORS.images}`
@@ -387,10 +380,10 @@ export function initCursorSwarm() {
         const r = el.getBoundingClientRect();
         if (r.bottom >= bodyRect.top && r.top <= bodyRect.bottom + 40) {
           setTimeout(() => triggerBuildForElement(el), delay);
-          delay = Math.min(delay + 40, 320);
+          delay = Math.min(delay + 50, 400);
         }
       });
-    }, 120);
+    }, 320);
   }
 
   /* ==========================================================================

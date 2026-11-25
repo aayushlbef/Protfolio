@@ -1563,7 +1563,8 @@ body.view-section[data-active-section="contact"]      #section-contact {
 /* Figma-style bounding box wireframe */
 .swarm-bbox {
   position: fixed;
-  border: 1.5px dashed;
+  border: 1.5px solid #3b82f6;
+  background: rgba(59, 130, 246, 0.06);
   border-radius: 6px;
   pointer-events: none;
   transition: opacity 0.25s ease;
@@ -1661,8 +1662,5 @@ body.view-section[data-active-section="contact"]      #section-contact {
   clip-path: inset(0 0 0% 0);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .swarm-overlay {
-    display: none !important;
-  }
-}
+
+
