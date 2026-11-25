@@ -124,12 +124,14 @@ ul, ol {
 .desktop-grid {
   position: relative;
   z-index: 2;
-  display: grid;
-  grid-template-columns: repeat(5, 90px);
-  grid-auto-rows: auto;
-  gap: 8px 20px;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 8px;
   padding: 40px;
   align-content: start;
+  align-items: flex-start;
+  max-height: calc(100vh - 120px);
 }
 
 .desktop-icon {
