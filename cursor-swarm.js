@@ -331,18 +331,22 @@ export function initCursorSwarm() {
     }, arriveDelay);
   }
 
+  function isElementInActiveView(el) {
+    const panel = el.closest('.section-panel');
+    if (!panel) return true;
+    const activeSection = document.body.getAttribute('data-active-section');
+    return (
+      document.body.classList.contains('view-section') &&
+      panel.getAttribute('data-section') === activeSection
+    );
+  }
+
   function triggerBuildForElement(el, preferredAgent = null) {
     if (!el || builtElements.has(el)) return;
 
-    const panel = el.closest('.section-panel');
-    if (panel) {
-      const activeSection = document.body.getAttribute('data-active-section');
-      if (
-        !document.body.classList.contains('view-section') ||
-        panel.getAttribute('data-section') !== activeSection
-      ) {
-        return;
-      }
+    if (!isElementInActiveView(el)) {
+      queuedElements.delete(el);
+      return;
     }
 
     builtElements.add(el);
@@ -468,7 +472,11 @@ export function initCursorSwarm() {
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && !builtElements.has(entry.target)) {
+          if (
+            entry.isIntersecting &&
+            !builtElements.has(entry.target) &&
+            isElementInActiveView(entry.target)
+          ) {
             enqueueElement(entry.target);
             wakeSwarm(600);
             io.unobserve(entry.target);
@@ -483,6 +491,24 @@ export function initCursorSwarm() {
     );
 
     targets.forEach((t) => io.observe(t));
+
+    // Scroll fallback so fast scrolling never misses any element
+    body.addEventListener(
+      'scroll',
+      () => {
+        if (!isElementInActiveView(body)) return;
+        const bodyRect = body.getBoundingClientRect();
+        targets.forEach((el) => {
+          if (builtElements.has(el) || queuedElements.has(el)) return;
+          const r = el.getBoundingClientRect();
+          if (r.bottom >= bodyRect.top - 20 && r.top <= bodyRect.bottom + 60) {
+            enqueueElement(el);
+            wakeSwarm(600);
+          }
+        });
+      },
+      { passive: true }
+    );
   }
 
   document.querySelectorAll('.section-panel .section-body').forEach(observeSectionBody);
@@ -496,6 +522,7 @@ export function initCursorSwarm() {
     wakeSwarm(1100);
 
     setTimeout(() => {
+      if (!isElementInActiveView(body)) return;
       const targets = body.querySelectorAll(
         `${SELECTORS.containers}, ${SELECTORS.texts}, ${SELECTORS.images}`
       );
@@ -504,7 +531,8 @@ export function initCursorSwarm() {
       targets.forEach((el) => {
         if (builtElements.has(el)) return;
         const r = el.getBoundingClientRect();
-        if (r.bottom >= bodyRect.top && r.top <= bodyRect.bottom + 40) {
+        if (r.bottom >= bodyRect.top - 20 && r.top <= bodyRect.bottom + 60) {
+          queuedElements.delete(el);
           enqueueElement(el);
         }
       });
