@@ -235,15 +235,13 @@ body.view-section[data-active-section="contact"]      #section-contact {
   pointer-events: auto;
 }
 
-/* Section top navigation (no bar, clean text & back button) */
+/* Section top navigation (minimal height, button in corner left) */
 .section-chrome {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 24px 48px 8px;
-  max-width: 1200px;
+  gap: 12px;
+  padding: 8px 16px;
   width: 100%;
-  margin: 0 auto;
   background: transparent;
   border: none;
   box-shadow: none;
@@ -254,22 +252,23 @@ body.view-section[data-active-section="contact"]      #section-contact {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
+  padding: 4px 10px;
+  height: 28px;
   border-radius: var(--win-radius);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--win-text-sec);
-  font-size: 0.85rem;
-  transition: all 0.2s ease;
+  font-size: 0.8rem;
+  transition: all 0.18s ease;
   flex-shrink: 0;
   cursor: pointer;
 }
 
 .section-back:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
   color: #fff;
-  transform: translateX(-2px);
+  transform: translateX(-1px);
 }
 
 .section-back svg {
@@ -279,10 +278,10 @@ body.view-section[data-active-section="contact"]      #section-contact {
 }
 
 .section-title {
-  font-size: 1.15rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  color: var(--win-text);
-  letter-spacing: -0.2px;
+  color: var(--win-text-sec);
+  letter-spacing: -0.1px;
 }
 
 .section-body {
@@ -1196,7 +1195,7 @@ body.view-section[data-active-section="contact"]      #section-contact {
   }
 
   .section-chrome {
-    padding: 20px 36px 6px;
+    padding: 8px 16px;
   }
 
   .about-hero {
@@ -1224,7 +1223,7 @@ body.view-section[data-active-section="contact"]      #section-contact {
   }
 
   .section-chrome {
-    padding: 16px 20px 4px;
+    padding: 8px 14px;
   }
 
   .section-body {
@@ -1277,7 +1276,7 @@ body.view-section[data-active-section="contact"]      #section-contact {
   }
 
   .section-chrome {
-    padding: 12px 14px 2px;
+    padding: 6px 10px;
   }
 
   .desktop-icon {
