@@ -191,31 +191,6 @@ ul, ol {
   user-select: none;
 }
 
-/* ────────────────────────────────────────────────────────────
-   5. DESKTOP WELCOME
-   ──────────────────────────────────────────────────────────── */
-.desktop-welcome {
-  position: absolute;
-  bottom: 120px;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.6s ease 0.3s;
-  white-space: nowrap;
-}
-
-.desktop-welcome p {
-  font-size: 0.95rem;
-  color: var(--win-text-sec);
-  letter-spacing: 0.5px;
-}
-
-.intro-done .desktop-welcome {
-  opacity: 1;
-  pointer-events: auto;
-}
 
 /* ────────────────────────────────────────────────────────────
    6. SECTIONS CONTAINER & PANELS
