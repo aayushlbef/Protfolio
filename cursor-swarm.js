@@ -332,24 +332,93 @@ export function initCursorSwarm() {
   }
 
   /* ==========================================================================
-     1.0s CENTER ORBIT INTRO -> THEN BUILD DESKTOP
+     1.0s CENTER ORBIT INTRO -> THEN BUILD DESKTOP (PORTRAIT + ICONS + TASKBAR)
      ========================================================================== */
+  function buildPortraitCanvas(canvasEl) {
+    const duration = 950;
+    const startTime = performance.now();
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const boxSize = Math.min(w * 0.55, h * 0.78);
+    const left = (w - boxSize) * 0.5;
+    const top = (h - boxSize) * 0.5;
+
+    const dispatched = pickNearbyAgents(w * 0.5, h * 0.5, 4, duration);
+    const accentColor = dispatched[0]?.color || '#00D4FF';
+
+    // Figma bounding box + scanline over the center portrait
+    const box = document.createElement('div');
+    box.className = 'swarm-bbox';
+    box.style.left = `${left}px`;
+    box.style.top = `${top}px`;
+    box.style.width = `${boxSize}px`;
+    box.style.height = `${boxSize}px`;
+    box.style.borderColor = accentColor;
+    box.innerHTML = `
+      <span class="swarm-handle tl" style="border-color:${accentColor}"></span>
+      <span class="swarm-handle tr" style="border-color:${accentColor}"></span>
+      <span class="swarm-handle bl" style="border-color:${accentColor}"></span>
+      <span class="swarm-handle br" style="border-color:${accentColor}"></span>
+      <span class="swarm-dim-badge" style="background:${accentColor}">${Math.round(boxSize)} × ${Math.round(boxSize)}</span>
+      <div class="swarm-scanline" style="background:linear-gradient(90deg, transparent, ${accentColor}, transparent); box-shadow: 0 0 12px ${accentColor};"></div>
+    `;
+    wireframeLayer.appendChild(box);
+
+    // Assign 4 cursors to corners & sweeping scanline
+    if (dispatched[0]) {
+      dispatched[0].taskFn = (now) => {
+        const p = Math.min(1, (now - startTime) / duration);
+        dispatched[0].targetX = left + boxSize - 10;
+        dispatched[0].targetY = top + boxSize * p;
+      };
+    }
+    if (dispatched[1]) {
+      dispatched[1].taskFn = (now) => {
+        const p = Math.min(1, (now - startTime) / duration);
+        dispatched[1].targetX = left + 10;
+        dispatched[1].targetY = top + boxSize * (1 - p * 0.85);
+      };
+    }
+    if (dispatched[2]) {
+      dispatched[2].taskFn = () => {
+        dispatched[2].targetX = left + boxSize * 0.15;
+        dispatched[2].targetY = top + 12;
+      };
+    }
+    if (dispatched[3]) {
+      dispatched[3].taskFn = () => {
+        dispatched[3].targetX = left + boxSize * 0.85;
+        dispatched[3].targetY = top + boxSize - 12;
+      };
+    }
+
+    // Reveal portrait canvas in sync with top-to-bottom scanline
+    setTimeout(() => {
+      canvasEl.classList.remove('swarm-hidden');
+      canvasEl.classList.add('swarm-building-image');
+      void canvasEl.offsetWidth;
+      canvasEl.classList.add('swarm-built');
+    }, 150);
+
+    setTimeout(() => {
+      box.classList.add('is-fading');
+      setTimeout(() => box.remove(), 250);
+    }, duration - 120);
+  }
+
   setTimeout(() => {
     introOrbitActive = false;
 
-    // Reveal background canvas
+    // Build center portrait background with 4 cursors + wireframe scanline
     if (bgCanvas) {
-      bgCanvas.classList.remove('swarm-hidden');
-      bgCanvas.classList.add('swarm-building-container');
-      void bgCanvas.offsetWidth;
-      bgCanvas.classList.add('swarm-built');
+      buildPortraitCanvas(bgCanvas);
     }
 
     // Build desktop icons in staggered sync
     desktopIcons.forEach((icon, i) => {
       setTimeout(() => {
         triggerBuildForElement(icon);
-      }, i * 75);
+      }, 180 + i * 75);
     });
 
     // Build taskbar
@@ -360,7 +429,7 @@ export function initCursorSwarm() {
         void taskbar.offsetWidth;
         taskbar.classList.add('swarm-built');
         wakeSwarm(600);
-      }, desktopIcons.length * 75);
+      }, 180 + desktopIcons.length * 75);
     }
   }, INTRO_ORBIT_MS);
 
