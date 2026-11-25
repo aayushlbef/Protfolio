@@ -1508,3 +1508,161 @@ body.view-section[data-active-section="contact"]      #section-contact {
     right: 0;
   }
 }
+
+
+/* ────────────────────────────────────────────────────────────
+   22. MULTIPLAYER CURSOR SWARM OVERLAY
+   ──────────────────────────────────────────────────────────── */
+.swarm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9995;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.swarm-wireframes,
+.swarm-cursors {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.swarm-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: flex-start;
+  pointer-events: none;
+  will-change: transform;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.55));
+}
+
+.swarm-cursor-arrow {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.swarm-cursor-tag {
+  margin-top: 14px;
+  margin-left: -2px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--font-main);
+  color: #ffffff;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+/* Figma-style bounding box wireframe */
+.swarm-bbox {
+  position: fixed;
+  border: 1.5px dashed;
+  border-radius: 6px;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  box-sizing: border-box;
+}
+
+.swarm-bbox.is-fading {
+  opacity: 0;
+}
+
+.swarm-handle {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  background: #ffffff;
+  border: 1.5px solid;
+  border-radius: 1px;
+}
+
+.swarm-handle.tl { top: -4px; left: -4px; }
+.swarm-handle.tr { top: -4px; right: -4px; }
+.swarm-handle.bl { bottom: -4px; left: -4px; }
+.swarm-handle.br { bottom: -4px; right: -4px; }
+
+.swarm-dim-badge {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+/* Image wireframe scanbox */
+.swarm-scanbox {
+  position: fixed;
+  border: 1px solid;
+  border-radius: 6px;
+  overflow: hidden;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.swarm-scanbox.is-fading {
+  opacity: 0;
+}
+
+.swarm-scanline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  top: 0;
+  animation: swarmScanDown 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes swarmScanDown {
+  from { top: 0%; opacity: 1; }
+  to   { top: 100%; opacity: 0.2; }
+}
+
+/* Element build-in transitions (0.8s - 0.95s) */
+.swarm-building-container {
+  opacity: 0.15;
+  transform: scale(0.985);
+  transition: opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.swarm-building-container.swarm-built {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.swarm-building-text {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.swarm-building-text.swarm-built {
+  clip-path: inset(0 0% 0 0);
+}
+
+.swarm-building-image {
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 0.95s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.swarm-building-image.swarm-built {
+  clip-path: inset(0 0 0% 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swarm-overlay {
+    display: none !important;
+  }
+}

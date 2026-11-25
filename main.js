@@ -7,6 +7,9 @@ import { portfolioData } from './portfolio-data.js';
 import { animate } from 'animejs';
 import { initDesktopBackground } from './desktop-bg.js';
 import { initCertViewer } from './cert-viewer.js';
+import { initCursorSwarm } from './cursor-swarm.js';
+
+let swarmController = null;
 
 /* ==========================================================================
    SVG TEMPLATES
@@ -115,6 +118,11 @@ export function openSection(sectionId) {
   if (sectionPanel) {
     const sectionBody = sectionPanel.querySelector('.section-body');
     if (sectionBody) sectionBody.scrollTop = 0;
+  }
+
+  // Trigger collaborative cursor swarm build for newly opened section
+  if (swarmController) {
+    swarmController.triggerSectionBuild(sectionId);
   }
 }
 
@@ -265,6 +273,9 @@ function init() {
 
   // Initialize 3D certificate viewer
   initCertViewer();
+
+  // Initialize Multiplayer Cursor Swarm
+  swarmController = initCursorSwarm();
 
   console.log('Portfolio ready!');
 }
