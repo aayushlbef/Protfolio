@@ -4,7 +4,6 @@
  */
 
 import { portfolioData } from './portfolio-data.js';
-import { playCursorAnimation } from './cursor-animation.js';
 import { animate } from 'animejs';
 
 /* ==========================================================================
@@ -255,9 +254,10 @@ function init() {
   initCursorDot();
   initRevealAnimations();
 
-  playCursorAnimation(() => {
-    console.log('Portfolio ready!');
-  });
+  // Portfolio ready immediately — no intro animation
+  document.body.classList.remove('intro-playing');
+  document.body.classList.add('intro-done');
+  console.log('Portfolio ready!');
 }
 
 if (document.readyState === 'loading') {
