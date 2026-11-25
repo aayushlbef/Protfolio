@@ -146,24 +146,69 @@ export function closeSection() {
    ========================================================================== */
 
 export function bindNavigation() {
-  // Desktop icons: click to open section or download resume
   const desktopGrid = document.getElementById('desktopGrid');
+  const desktop = document.getElementById('desktop');
+
+  function activateDesktopItem(btn) {
+    const sectionId = btn.getAttribute('data-section');
+    if (sectionId === 'resume') {
+      const link = document.createElement('a');
+      link.href = './Aayush Resume.pdf';
+      link.download = 'Aayush Resume.pdf';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else if (sectionId) {
+      openSection(sectionId);
+    }
+  }
+
+  function selectDesktopItem(btn) {
+    document.querySelectorAll('.desktop-icon.is-selected').forEach(el => {
+      el.classList.remove('is-selected');
+    });
+    if (btn) btn.classList.add('is-selected');
+  }
+
   if (desktopGrid) {
+    let lastPointerType = 'mouse';
+    desktopGrid.addEventListener('pointerdown', (e) => {
+      lastPointerType = e.pointerType || 'mouse';
+    });
+
+    // Single-click selects on mouse; opens directly on touch devices
     desktopGrid.addEventListener('click', (e) => {
       const btn = e.target.closest('.desktop-icon');
       if (!btn) return;
+      selectDesktopItem(btn);
+      if (lastPointerType === 'touch') {
+        activateDesktopItem(btn);
+      }
+    });
 
-      const sectionId = btn.getAttribute('data-section');
-      if (sectionId === 'resume') {
-        const link = document.createElement('a');
-        link.href = './Aayush Resume.pdf';
-        link.download = 'Aayush Resume.pdf';
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else if (sectionId) {
-        openSection(sectionId);
+    // Double-click opens folder or downloads file
+    desktopGrid.addEventListener('dblclick', (e) => {
+      const btn = e.target.closest('.desktop-icon');
+      if (!btn) return;
+      selectDesktopItem(btn);
+      activateDesktopItem(btn);
+    });
+
+    // Enter key opens selected/focused icon
+    desktopGrid.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const btn = e.target.closest('.desktop-icon');
+        if (btn) activateDesktopItem(btn);
+      }
+    });
+  }
+
+  // Clicking empty desktop background clears selection
+  if (desktop) {
+    desktop.addEventListener('click', (e) => {
+      if (!e.target.closest('.desktop-icon')) {
+        selectDesktopItem(null);
       }
     });
   }

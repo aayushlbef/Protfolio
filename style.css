@@ -155,6 +155,16 @@ ul, ol {
   border-color: rgba(255, 255, 255, 0.12);
 }
 
+.desktop-icon.is-selected {
+  background: rgba(0, 120, 212, 0.22);
+  border-color: rgba(0, 120, 212, 0.55);
+}
+
+.desktop-icon.is-selected:hover {
+  background: rgba(0, 120, 212, 0.28);
+  border-color: rgba(0, 120, 212, 0.65);
+}
+
 .desktop-icon:active {
   background: rgba(0, 120, 212, 0.18);
   border-color: rgba(0, 120, 212, 0.35);
