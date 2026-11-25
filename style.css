@@ -235,38 +235,41 @@ body.view-section[data-active-section="contact"]      #section-contact {
   pointer-events: auto;
 }
 
-/* Section chrome (top bar) */
+/* Section top navigation (no bar, clean text & back button) */
 .section-chrome {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 16px 28px;
+  padding: 24px 48px 8px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
   background: transparent;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  position: sticky;
-  top: 0;
-  z-index: 2;
+  border: none;
+  box-shadow: none;
   flex-shrink: 0;
 }
 
 .section-back {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   padding: 6px 14px;
   border-radius: var(--win-radius);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--win-text-sec);
   font-size: 0.85rem;
-  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  transition: all 0.2s ease;
   flex-shrink: 0;
+  cursor: pointer;
 }
 
 .section-back:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
   color: #fff;
+  transform: translateX(-2px);
 }
 
 .section-back svg {
@@ -276,16 +279,16 @@ body.view-section[data-active-section="contact"]      #section-contact {
 }
 
 .section-title {
-  font-size: 0.95rem;
+  font-size: 1.15rem;
   font-weight: 600;
   color: var(--win-text);
-  letter-spacing: 0.2px;
+  letter-spacing: -0.2px;
 }
 
 .section-body {
   flex: 1;
   overflow-y: auto;
-  padding: 40px 48px;
+  padding: 20px 48px 40px;
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
@@ -1192,6 +1195,10 @@ body.view-section[data-active-section="contact"]      #section-contact {
     padding: 30px;
   }
 
+  .section-chrome {
+    padding: 20px 36px 6px;
+  }
+
   .about-hero {
     grid-template-columns: 220px 1fr;
     gap: 32px;
@@ -1214,6 +1221,10 @@ body.view-section[data-active-section="contact"]      #section-contact {
     grid-template-columns: repeat(3, 90px);
     gap: 6px 14px;
     padding: 20px;
+  }
+
+  .section-chrome {
+    padding: 16px 20px 4px;
   }
 
   .section-body {
@@ -1263,6 +1274,10 @@ body.view-section[data-active-section="contact"]      #section-contact {
     grid-template-columns: repeat(3, 76px);
     gap: 4px 10px;
     padding: 14px;
+  }
+
+  .section-chrome {
+    padding: 12px 14px 2px;
   }
 
   .desktop-icon {
