@@ -5,6 +5,7 @@
 
 import { portfolioData } from './portfolio-data.js';
 import { animate } from 'animejs';
+import { initDesktopBackground } from './desktop-bg.js';
 
 /* ==========================================================================
    SVG TEMPLATES
@@ -254,9 +255,13 @@ function init() {
   initCursorDot();
   initRevealAnimations();
 
-  // Portfolio ready immediately — no intro animation
+  // Portfolio ready immediately
   document.body.classList.remove('intro-playing');
   document.body.classList.add('intro-done');
+
+  // Initialize Three.js animated desktop background
+  initDesktopBackground();
+
   console.log('Portfolio ready!');
 }
 
