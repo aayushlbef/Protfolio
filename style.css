@@ -217,9 +217,9 @@ ul, ol {
               transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  background: rgba(10, 10, 20, 0.92);
-  backdrop-filter: blur(24px) saturate(1.4);
-  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  background: rgba(8, 8, 12, 0.92);
+  backdrop-filter: blur(28px) saturate(1.2);
+  -webkit-backdrop-filter: blur(28px) saturate(1.2);
   overflow: hidden;
 }
 
@@ -240,11 +240,9 @@ body.view-section[data-active-section="contact"]      #section-contact {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 12px 20px;
-  background: rgba(20, 20, 36, 0.80);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--win-glass-border);
+  padding: 16px 28px;
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   position: sticky;
   top: 0;
   z-index: 2;
@@ -257,8 +255,8 @@ body.view-section[data-active-section="contact"]      #section-contact {
   gap: 8px;
   padding: 6px 14px;
   border-radius: var(--win-radius);
-  background: var(--win-glass);
-  border: 1px solid var(--win-glass-border);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--win-text-sec);
   font-size: 0.85rem;
   transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
@@ -266,9 +264,9 @@ body.view-section[data-active-section="contact"]      #section-contact {
 }
 
 .section-back:hover {
-  background: var(--win-glass-hover);
-  border-color: rgba(255, 255, 255, 0.18);
-  color: var(--win-text);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
 }
 
 .section-back svg {
