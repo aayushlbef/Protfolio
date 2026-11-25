@@ -1,8 +1,10 @@
 /**
  * cursor-swarm.js
- * Multiplayer Cursor Swarm page-builder animation:
+ * Multiplayer Cursor Swarm page-builder animation with dynamic work-queue dispatch:
  * 1. Page load (0s - 1.0s): Blank desktop while cursors orbit in a circle at screen center.
- * 2. Build phase (1.0s+): Cursors fan out to build desktop icons & taskbar in sync.
+ * 2. Build phase (1.0s+): Cursors fan out to build the portrait, desktop folders, and every
+ *    individual taskbar component (.tb-btn, .tb-pin, .tray-icon, .tb-clock) in sync.
+ *    As soon as a cursor finishes one component, it immediately moves to the next unbuilt item.
  * 3. Section open / scroll: Cursors reappear briefly to build newly revealed elements in sync.
  * 4. Idle / Done: Cursors smoothly disappear until something changes on screen.
  */
@@ -26,12 +28,14 @@ const AGENT_CONFIGS = [
 
 const SELECTORS = {
   containers:
-    '.about-profile-card, .about-card, .project-card, .cert-card, .skill-category, .timeline-item, .contact-link, .contact-form, .desktop-icon',
+    '.about-profile-card, .about-card, .project-card, .cert-card, .skill-category, .timeline-item, .contact-link, .contact-form, .desktop-icon, .tb-btn, .tb-pin, .tray-icon, .tb-clock',
   texts:
     '.section-title, .about-name, .about-card h4, .about-bio-card p, .about-goals-card p, .project-info h3, .cert-info h4, .contact-heading, .contact-desc, .timeline-content h3',
   images:
     '.about-avatar, .project-preview img, .cert-preview img',
 };
+
+const SMALL_ITEM_SELECTOR = '.desktop-icon, .tb-btn, .tb-pin, .tray-icon, .tb-clock';
 
 function createCursorSVG(color) {
   return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -42,7 +46,6 @@ function createCursorSVG(color) {
 export function initCursorSwarm() {
   if (typeof window === 'undefined') return null;
 
-  // Create non-blocking overlay (visible during intro & builds, hidden when idle)
   const overlay = document.createElement('div');
   overlay.className = 'swarm-overlay is-active';
   overlay.id = 'swarmOverlay';
@@ -58,24 +61,30 @@ export function initCursorSwarm() {
 
   document.body.appendChild(overlay);
 
-  // State
   let isMobile = window.innerWidth < 640;
   let activeCount = isMobile ? 6 : 14;
   let rafId = null;
 
   const introStartAt = performance.now();
-  const INTRO_ORBIT_MS = 1000; // 1 second circular orbit in center with blank page
+  const INTRO_ORBIT_MS = 1000;
   let introOrbitActive = true;
   let lastBuildEndAt = introStartAt + INTRO_ORBIT_MS + 100;
 
   const builtElements = new WeakSet();
+  const queuedElements = new WeakSet();
   const observedSections = new WeakSet();
+  const buildQueue = [];
 
-  // Hide desktop icons, taskbar & background canvas initially until cursors finish the 1s orbit and build them
+  // Hide desktop icons, taskbar & its individual items, and background canvas initially
   const desktopIcons = Array.from(document.querySelectorAll('.desktop-icon'));
   const taskbar = document.getElementById('taskbar');
+  const taskbarItems = taskbar
+    ? Array.from(taskbar.querySelectorAll('.tb-btn, .tb-pin, .tray-icon, .tb-clock'))
+    : [];
   const bgCanvas = document.getElementById('desktop-bg-canvas');
+
   desktopIcons.forEach((el) => el.classList.add('swarm-hidden'));
+  taskbarItems.forEach((el) => el.classList.add('swarm-hidden'));
   if (taskbar) taskbar.classList.add('swarm-hidden');
   if (bgCanvas) bgCanvas.classList.add('swarm-hidden');
 
@@ -115,7 +124,7 @@ export function initCursorSwarm() {
       vy: 0,
       targetX: startX,
       targetY: startY,
-      stiffness: 0.20 + (i % 4) * 0.025,
+      stiffness: 0.22 + (i % 4) * 0.025,
       damping: 0.68,
       busyUntil: 0,
       taskFn: null,
@@ -135,7 +144,7 @@ export function initCursorSwarm() {
   window.addEventListener('resize', syncAgentCount, { passive: true });
 
   /* ==========================================================================
-     DISPATCH HELPERS
+     DISPATCH & WORK-QUEUE HELPERS
      ========================================================================== */
   function wakeSwarm(durationMs) {
     const now = performance.now();
@@ -143,12 +152,14 @@ export function initCursorSwarm() {
     overlay.classList.add('is-active');
   }
 
-  function pickNearbyAgents(cx, cy, count, durationMs) {
+  function pickNearbyAgents(cx, cy, count, durationMs, preferredAgent = null) {
     const now = performance.now();
-    const pool = agents.filter((a) => a.active && a.busyUntil <= now);
-    const candidates = pool.length >= count ? pool : agents.filter((a) => a.active);
+    const freePool = agents.filter((a) => a.active && a.busyUntil <= now);
+    const candidates = freePool.length >= count ? freePool : agents.filter((a) => a.active);
 
     const sorted = [...candidates].sort((a, b) => {
+      if (preferredAgent && a === preferredAgent) return -1;
+      if (preferredAgent && b === preferredAgent) return 1;
       const da = Math.hypot(a.x - cx, a.y - cy);
       const db = Math.hypot(b.x - cx, b.y - cy);
       return da - db;
@@ -162,30 +173,40 @@ export function initCursorSwarm() {
     return chosen;
   }
 
+  function enqueueElement(el) {
+    if (!el || builtElements.has(el) || queuedElements.has(el)) return;
+    queuedElements.add(el);
+    buildQueue.push(el);
+  }
+
   /* ==========================================================================
-     SYNCED BUILD EFFECTS (cursors move first, element builds in sync)
+     SYNCED BUILD EFFECTS
      ========================================================================== */
 
-  function buildContainer(el, duration = 900) {
+  function buildContainer(el, preferredAgent = null) {
     const rect = el.getBoundingClientRect();
-    if (rect.width < 10 || rect.height < 10) {
+    if (rect.width < 6 || rect.height < 6) {
       el.classList.remove('swarm-hidden');
       return;
     }
 
+    const isSmall = el.matches(SMALL_ITEM_SELECTOR);
+    const arriveDelay = isSmall ? 170 : 240;
+    const duration = isSmall ? 400 : 720;
+    const cursorCount = isSmall ? 1 : 2;
+
     const startTime = performance.now();
-    const arriveDelay = 260;
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
-    const dispatched = pickNearbyAgents(cx, cy, 2, duration);
+    const dispatched = pickNearbyAgents(cx, cy, cursorCount, duration, preferredAgent);
     const accentColor = dispatched[0]?.color || '#3b82f6';
 
     if (dispatched[0]) {
       dispatched[0].taskFn = (now) => {
         const p = Math.max(0, Math.min(1, (now - startTime - arriveDelay) / (duration - arriveDelay)));
         const r = el.getBoundingClientRect();
-        dispatched[0].targetX = r.left + r.width * (0.08 + p * 0.25);
-        dispatched[0].targetY = r.top + 8;
+        dispatched[0].targetX = r.left + r.width * (isSmall ? 0.25 + p * 0.5 : 0.08 + p * 0.25);
+        dispatched[0].targetY = r.top + (isSmall ? r.height * 0.4 : 8);
       };
     }
     if (dispatched[1]) {
@@ -197,7 +218,6 @@ export function initCursorSwarm() {
       };
     }
 
-    // Wait for cursors to arrive before drawing wireframe and revealing element
     setTimeout(() => {
       const r = el.getBoundingClientRect();
       const box = document.createElement('div');
@@ -207,13 +227,14 @@ export function initCursorSwarm() {
       box.style.width = `${r.width}px`;
       box.style.height = `${r.height}px`;
       box.style.borderColor = accentColor;
-      box.innerHTML = `
-        <span class="swarm-handle tl" style="border-color:${accentColor}"></span>
-        <span class="swarm-handle tr" style="border-color:${accentColor}"></span>
-        <span class="swarm-handle bl" style="border-color:${accentColor}"></span>
-        <span class="swarm-handle br" style="border-color:${accentColor}"></span>
-        <span class="swarm-dim-badge" style="background:${accentColor}">${Math.round(r.width)} × ${Math.round(r.height)}</span>
-      `;
+      box.innerHTML = isSmall
+        ? `<span class="swarm-handle tl" style="border-color:${accentColor}"></span>
+           <span class="swarm-handle br" style="border-color:${accentColor}"></span>`
+        : `<span class="swarm-handle tl" style="border-color:${accentColor}"></span>
+           <span class="swarm-handle tr" style="border-color:${accentColor}"></span>
+           <span class="swarm-handle bl" style="border-color:${accentColor}"></span>
+           <span class="swarm-handle br" style="border-color:${accentColor}"></span>
+           <span class="swarm-dim-badge" style="background:${accentColor}">${Math.round(r.width)} × ${Math.round(r.height)}</span>`;
       wireframeLayer.appendChild(box);
 
       el.classList.remove('swarm-hidden');
@@ -223,24 +244,26 @@ export function initCursorSwarm() {
 
       setTimeout(() => {
         box.classList.add('is-fading');
-        setTimeout(() => box.remove(), 220);
-      }, duration - arriveDelay - 120);
+        setTimeout(() => box.remove(), 200);
+      }, duration - arriveDelay - 60);
     }, arriveDelay);
   }
 
-  function buildText(el, duration = 700) {
+  function buildText(el, preferredAgent = null) {
     const rect = el.getBoundingClientRect();
     if (rect.width < 10 || rect.height < 8) {
       el.classList.remove('swarm-hidden');
       return;
     }
 
+    const arriveDelay = 170;
+    const duration = 650;
     const startTime = performance.now();
-    const dispatched = pickNearbyAgents(rect.left, rect.top + rect.height * 0.5, 1, duration);
+    const dispatched = pickNearbyAgents(rect.left, rect.top + rect.height * 0.5, 1, duration, preferredAgent);
 
     if (dispatched[0]) {
       dispatched[0].taskFn = (now) => {
-        const p = Math.min(1, (now - startTime) / duration);
+        const p = Math.max(0, Math.min(1, (now - startTime - arriveDelay) / (duration - arriveDelay)));
         const r = el.getBoundingClientRect();
         dispatched[0].targetX = r.left + r.width * Math.min(0.98, p);
         dispatched[0].targetY = r.top + r.height * 0.6;
@@ -252,33 +275,25 @@ export function initCursorSwarm() {
       el.classList.add('swarm-building-text');
       void el.offsetWidth;
       el.classList.add('swarm-built');
-    }, 160);
+    }, arriveDelay);
   }
 
-  function buildImage(el, duration = 800) {
+  function buildImage(el, preferredAgent = null) {
     const rect = el.getBoundingClientRect();
     if (rect.width < 16 || rect.height < 16) {
       el.classList.remove('swarm-hidden');
       return;
     }
 
+    const arriveDelay = 200;
+    const duration = 800;
     const startTime = performance.now();
-    const dispatched = pickNearbyAgents(rect.right, rect.top, 2, duration);
+    const dispatched = pickNearbyAgents(rect.right, rect.top, 2, duration, preferredAgent);
     const accentColor = dispatched[0]?.color || '#00D4FF';
-
-    const scanBox = document.createElement('div');
-    scanBox.className = 'swarm-scanbox';
-    scanBox.style.left = `${rect.left}px`;
-    scanBox.style.top = `${rect.top}px`;
-    scanBox.style.width = `${rect.width}px`;
-    scanBox.style.height = `${rect.height}px`;
-    scanBox.style.borderColor = accentColor;
-    scanBox.innerHTML = `<div class="swarm-scanline" style="background:linear-gradient(90deg, transparent, ${accentColor}, transparent); box-shadow: 0 0 10px ${accentColor};"></div>`;
-    wireframeLayer.appendChild(scanBox);
 
     if (dispatched[0]) {
       dispatched[0].taskFn = (now) => {
-        const p = Math.min(1, (now - startTime) / duration);
+        const p = Math.max(0, Math.min(1, (now - startTime - arriveDelay) / (duration - arriveDelay)));
         const r = el.getBoundingClientRect();
         dispatched[0].targetX = r.right - 8;
         dispatched[0].targetY = r.top + r.height * p;
@@ -293,19 +308,30 @@ export function initCursorSwarm() {
     }
 
     setTimeout(() => {
+      const r = el.getBoundingClientRect();
+      const scanBox = document.createElement('div');
+      scanBox.className = 'swarm-scanbox';
+      scanBox.style.left = `${r.left}px`;
+      scanBox.style.top = `${r.top}px`;
+      scanBox.style.width = `${r.width}px`;
+      scanBox.style.height = `${r.height}px`;
+      scanBox.style.borderColor = accentColor;
+      scanBox.innerHTML = `<div class="swarm-scanline" style="background:linear-gradient(90deg, transparent, ${accentColor}, transparent); box-shadow: 0 0 10px ${accentColor};"></div>`;
+      wireframeLayer.appendChild(scanBox);
+
       el.classList.remove('swarm-hidden');
       el.classList.add('swarm-building-image');
       void el.offsetWidth;
       el.classList.add('swarm-built');
-    }, 180);
 
-    setTimeout(() => {
-      scanBox.classList.add('is-fading');
-      setTimeout(() => scanBox.remove(), 220);
-    }, duration - 120);
+      setTimeout(() => {
+        scanBox.classList.add('is-fading');
+        setTimeout(() => scanBox.remove(), 220);
+      }, duration - arriveDelay - 80);
+    }, arriveDelay);
   }
 
-  function triggerBuildForElement(el) {
+  function triggerBuildForElement(el, preferredAgent = null) {
     if (!el || builtElements.has(el)) return;
 
     const panel = el.closest('.section-panel');
@@ -322,21 +348,21 @@ export function initCursorSwarm() {
     builtElements.add(el);
 
     if (el.matches(SELECTORS.images)) {
-      buildImage(el);
+      buildImage(el, preferredAgent);
     } else if (el.matches(SELECTORS.texts)) {
-      buildText(el);
+      buildText(el, preferredAgent);
     } else if (el.matches(SELECTORS.containers)) {
-      buildContainer(el);
+      buildContainer(el, preferredAgent);
     } else {
       el.classList.remove('swarm-hidden');
     }
   }
 
   /* ==========================================================================
-     1.0s CENTER ORBIT INTRO -> THEN BUILD DESKTOP (PORTRAIT + ICONS + TASKBAR)
+     1.0s CENTER ORBIT INTRO -> BUILD PORTRAIT, FOLDERS & TASKBAR COMPONENTS
      ========================================================================== */
   function buildPortraitCanvas(canvasEl) {
-    const arriveDelay = 280;
+    const arriveDelay = 260;
     const sweepDuration = 900;
     const totalDuration = arriveDelay + sweepDuration;
     const startTime = performance.now();
@@ -349,7 +375,6 @@ export function initCursorSwarm() {
     const dispatched = pickNearbyAgents(w * 0.5, h * 0.5, 4, totalDuration);
     const accentColor = dispatched[0]?.color || '#00D4FF';
 
-    // Assign 4 cursors to fly to corners first, then sweep in sync with scanline
     if (dispatched[0]) {
       dispatched[0].taskFn = (now) => {
         const p = Math.max(0, Math.min(1, (now - startTime - arriveDelay) / sweepDuration));
@@ -377,7 +402,6 @@ export function initCursorSwarm() {
       };
     }
 
-    // Start bounding box, scanline, and portrait reveal together once cursors arrive
     setTimeout(() => {
       const box = document.createElement('div');
       box.className = 'swarm-bbox';
@@ -411,24 +435,23 @@ export function initCursorSwarm() {
   setTimeout(() => {
     introOrbitActive = false;
 
-    // Build center portrait background with 4 cursors + wireframe scanline
+    // 1. Center portrait gets 4 cursors
     if (bgCanvas) {
       buildPortraitCanvas(bgCanvas);
     }
 
-    // Build desktop icons in staggered sync
-    desktopIcons.forEach((icon, i) => {
-      setTimeout(() => {
-        triggerBuildForElement(icon);
-      }, 260 + i * 110);
-    });
-
-    // Build taskbar with cursors + Figma bounding box
+    // 2. Reveal taskbar backdrop shell smoothly and queue all desktop folders + every individual taskbar item
     if (taskbar) {
-      setTimeout(() => {
-        buildContainer(taskbar, 950);
-      }, 260 + desktopIcons.length * 90);
+      taskbar.classList.remove('swarm-hidden');
+      taskbar.classList.add('swarm-building-container');
+      void taskbar.offsetWidth;
+      taskbar.classList.add('swarm-built');
     }
+
+    // Queue desktop icons and individual taskbar components so free cursors continuously flow through them!
+    desktopIcons.forEach((icon) => enqueueElement(icon));
+    taskbarItems.forEach((item) => enqueueElement(item));
+    wakeSwarm(900);
   }, INTRO_ORBIT_MS);
 
   /* ==========================================================================
@@ -444,13 +467,11 @@ export function initCursorSwarm() {
 
     const io = new IntersectionObserver(
       (entries) => {
-        let delay = 0;
         entries.forEach((entry) => {
           if (entry.isIntersecting && !builtElements.has(entry.target)) {
-            const target = entry.target;
-            setTimeout(() => triggerBuildForElement(target), delay);
-            delay = Math.min(delay + 55, 380);
-            io.unobserve(target);
+            enqueueElement(entry.target);
+            wakeSwarm(600);
+            io.unobserve(entry.target);
           }
         });
       },
@@ -472,7 +493,6 @@ export function initCursorSwarm() {
     const body = panel.querySelector('.section-body');
     if (!body) return;
 
-    // Wake cursors immediately as section opens
     wakeSwarm(1100);
 
     setTimeout(() => {
@@ -480,28 +500,47 @@ export function initCursorSwarm() {
         `${SELECTORS.containers}, ${SELECTORS.texts}, ${SELECTORS.images}`
       );
       const bodyRect = body.getBoundingClientRect();
-      let delay = 0;
 
       targets.forEach((el) => {
         if (builtElements.has(el)) return;
         const r = el.getBoundingClientRect();
         if (r.bottom >= bodyRect.top && r.top <= bodyRect.bottom + 40) {
-          setTimeout(() => triggerBuildForElement(el), delay);
-          delay = Math.min(delay + 55, 420);
+          enqueueElement(el);
         }
       });
     }, 300);
   }
 
   /* ==========================================================================
-     60 FPS SPRING PHYSICS LOOP + AUTO-HIDE WHEN NOTHING CHANGES
+     60 FPS SPRING PHYSICS LOOP + CONTINUOUS QUEUE DISPATCH + AUTO-HIDE
      ========================================================================== */
+  function dispatchQueueToFreeAgents(now) {
+    if (buildQueue.length === 0) return;
+
+    const freeAgents = agents.filter((a) => a.active && a.busyUntil <= now);
+    for (let i = 0; i < freeAgents.length && buildQueue.length > 0; i++) {
+      const agent = freeAgents[i];
+      // Pick the closest queued element to this free agent so movement looks natural
+      let bestIdx = 0;
+      let bestDist = Infinity;
+      for (let q = 0; q < buildQueue.length; q++) {
+        const r = buildQueue[q].getBoundingClientRect();
+        const d = Math.hypot(r.left + r.width * 0.5 - agent.x, r.top + r.height * 0.5 - agent.y);
+        if (d < bestDist) {
+          bestDist = d;
+          bestIdx = q;
+        }
+      }
+      const [nextEl] = buildQueue.splice(bestIdx, 1);
+      triggerBuildForElement(nextEl, agent);
+    }
+  }
+
   function tick(now) {
     rafId = requestAnimationFrame(tick);
     if (document.hidden) return;
 
     if (introOrbitActive) {
-      // Phase 1 (0s - 1.0s): Orbit in a circle at screen center
       const cx = window.innerWidth * 0.5;
       const cy = window.innerHeight * 0.5;
       const r = isMobile ? 58 : 92;
@@ -515,8 +554,10 @@ export function initCursorSwarm() {
         a.targetY = cy + Math.sin(angle) * r;
       }
     } else {
-      // Phase 2+: Check if any cursors are still building
-      const isBuilding = now <= lastBuildEndAt + 250;
+      // Immediately hand off next unbuilt component to any cursor that just finished!
+      dispatchQueueToFreeAgents(now);
+
+      const isBuilding = buildQueue.length > 0 || now <= lastBuildEndAt + 220;
       if (!isBuilding) {
         overlay.classList.remove('is-active');
       }
@@ -532,7 +573,6 @@ export function initCursorSwarm() {
         a.taskFn = null;
       }
 
-      // Clamp within viewport
       a.targetX = Math.max(12, Math.min(window.innerWidth - 90, a.targetX));
       a.targetY = Math.max(12, Math.min(window.innerHeight - 36, a.targetY));
 
