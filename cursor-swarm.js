@@ -71,11 +71,13 @@ export function initCursorSwarm() {
   const builtElements = new WeakSet();
   const observedSections = new WeakSet();
 
-  // Hide desktop icons & taskbar initially until cursors finish the 1s orbit and build them
+  // Hide desktop icons, taskbar & background canvas initially until cursors finish the 1s orbit and build them
   const desktopIcons = Array.from(document.querySelectorAll('.desktop-icon'));
   const taskbar = document.getElementById('taskbar');
+  const bgCanvas = document.getElementById('desktop-bg-canvas');
   desktopIcons.forEach((el) => el.classList.add('swarm-hidden'));
   if (taskbar) taskbar.classList.add('swarm-hidden');
+  if (bgCanvas) bgCanvas.classList.add('swarm-hidden');
 
   // Pre-hide section elements until their section is opened / scrolled into view
   document
