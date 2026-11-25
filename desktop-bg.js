@@ -186,7 +186,7 @@ export function initDesktopBackground() {
 
   let charGeo = new THREE.PlaneGeometry(pSize, pSize, 32, 32);
   const charMesh = new THREE.Mesh(charGeo, characterMaterial);
-  charMesh.position.set(isMobile ? 0 : vis.width * 0.22, basePosY, 0);
+  charMesh.position.set(0, basePosY, 0); // centred
   scene.add(charMesh);
 
   /* ── Floating binary particles ───────────────────────────────────────── */
@@ -223,9 +223,9 @@ export function initDesktopBackground() {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.font = `bold ${Math.round(cell * 0.7)}px "JetBrains Mono", monospace`;
-    ctx.shadowColor = 'rgba(60, 210, 130, 0.9)';
+    ctx.shadowColor = 'rgba(255, 255, 255, 0.6)';
     ctx.shadowBlur = 10;
-    ctx.fillStyle = '#7dffb4';
+    ctx.fillStyle = '#ffffff';
     ctx.fillText('0', cell * 0.5, cell * 0.54);
     ctx.fillText('1', cell * 1.5, cell * 0.54);
     return new THREE.CanvasTexture(c);
@@ -329,7 +329,7 @@ export function initDesktopBackground() {
     charGeo.dispose();
     charGeo = new THREE.PlaneGeometry(pSize, pSize, 32, 32);
     charMesh.geometry = charGeo;
-    charMesh.position.set(mob ? 0 : vis.width * 0.22, basePosY, 0);
+    charMesh.position.set(0, basePosY, 0); // centred
   }
 
   window.addEventListener('resize', onResize);

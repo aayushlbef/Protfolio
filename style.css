@@ -104,7 +104,7 @@ ul, ol {
   position: fixed;
   inset: 0;
   z-index: 1;
-  background: radial-gradient(circle at 75% 45%, #245440 0%, #153326 45%, #0a1c13 85%);
+  background: radial-gradient(circle at 50% 45%, #1a1a1a 0%, #0d0d0d 45%, #050505 85%);
   display: flex;
   flex-direction: column;
   padding: 60px 0 60px;
