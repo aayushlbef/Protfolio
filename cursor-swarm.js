@@ -601,8 +601,8 @@ export function initCursorSwarm() {
         a.taskFn = null;
       }
 
-      a.targetX = Math.max(12, Math.min(window.innerWidth - 90, a.targetX));
-      a.targetY = Math.max(12, Math.min(window.innerHeight - 36, a.targetY));
+      a.targetX = Math.max(12, Math.min(window.innerWidth - 40, a.targetX));
+      a.targetY = Math.max(12, Math.min(window.innerHeight - 8, a.targetY));
 
       const ax = (a.targetX - a.x) * a.stiffness;
       const ay = (a.targetY - a.y) * a.stiffness;
