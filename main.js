@@ -250,12 +250,17 @@ export function initCursorDot() {
   const cursorDot = document.getElementById('cursorDot');
   if (!cursorDot) return;
 
+  const hoverSelector = 'a, button, .desktop-icon, .cert-card, .tb-btn, .tb-pin, .tray-icon, input, textarea, select, [role="button"]';
+
   window.addEventListener('mousemove', (e) => {
-    cursorDot.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;
+    cursorDot.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
+    if (cursorDot.style.opacity !== '1') {
+      cursorDot.style.opacity = '1';
+    }
   }, { passive: true });
 
   window.addEventListener('mouseover', (e) => {
-    const isHovering = Boolean(e.target.closest('a, button, .desktop-icon, input, textarea'));
+    const isHovering = Boolean(e.target.closest(hoverSelector));
     cursorDot.classList.toggle('hovering', isHovering);
   });
 
@@ -298,6 +303,77 @@ export function initRevealAnimations() {
 }
 
 /* ==========================================================================
+   8b. WALLPAPER LIVE TYPING ANIMATION
+   ========================================================================== */
+
+export function initWallpaperTyping() {
+  const introRoot = document.querySelector('.desktop-wallpaper-intro');
+  if (!introRoot) return;
+
+  const leftEls = Array.from(introRoot.querySelectorAll('.wallpaper-intro-left [data-type-text]'));
+  const rightEls = Array.from(introRoot.querySelectorAll('.wallpaper-intro-right [data-type-text]'));
+  const groups = [leftEls, rightEls].filter(group => group.length > 0);
+  if (!groups.length) return;
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    groups.flat().forEach(el => {
+      el.textContent = el.dataset.typeText || '';
+    });
+    return;
+  }
+
+  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  async function runGroupLoop(els, startDelay) {
+    els.forEach(el => {
+      el.textContent = '';
+      el.classList.remove('is-typing');
+    });
+
+    await sleep(startDelay);
+
+    const totalLoops = 2;
+    for (let cycle = 0; cycle < totalLoops; cycle++) {
+      // Type each line in sequence
+      for (const el of els) {
+        const fullText = el.dataset.typeText || '';
+        el.classList.add('is-typing');
+        for (let i = 1; i <= fullText.length; i++) {
+          el.textContent = fullText.slice(0, i);
+          await sleep(75);
+        }
+        el.classList.remove('is-typing');
+        await sleep(160);
+      }
+
+      // On the final loop, keep the completed text visible
+      if (cycle === totalLoops - 1) break;
+
+      const lastEl = els[els.length - 1];
+      lastEl.classList.add('is-typing');
+      await sleep(2000);
+      lastEl.classList.remove('is-typing');
+
+      for (let idx = els.length - 1; idx >= 0; idx--) {
+        const el = els[idx];
+        const current = el.textContent || '';
+        el.classList.add('is-typing');
+        for (let i = current.length - 1; i >= 0; i--) {
+          el.textContent = current.slice(0, i);
+          await sleep(35);
+        }
+        el.classList.remove('is-typing');
+      }
+
+      await sleep(400);
+    }
+  }
+
+  runGroupLoop(leftEls, 250);
+  runGroupLoop(rightEls, 450);
+}
+
+/* ==========================================================================
    9. INITIALIZATION
    ========================================================================== */
 
@@ -307,6 +383,7 @@ function init() {
   startClock();
   bindNavigation();
   initCursorDot();
+  initWallpaperTyping();
   initRevealAnimations();
 
   // Portfolio ready immediately
