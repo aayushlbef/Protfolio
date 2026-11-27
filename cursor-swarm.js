@@ -513,19 +513,30 @@ export function initCursorSwarm() {
 
   document.querySelectorAll('.section-panel .section-body').forEach(observeSectionBody);
 
+  const builtSections = new Set();
+
   function triggerSectionBuild(sectionId) {
+    if (builtSections.has(sectionId)) return;
+
     const panel = document.getElementById(`section-${sectionId}`);
     if (!panel) return;
     const body = panel.querySelector('.section-body');
     if (!body) return;
 
+    const targets = Array.from(
+      body.querySelectorAll(`${SELECTORS.containers}, ${SELECTORS.texts}, ${SELECTORS.images}`)
+    );
+    const hasUnbuilt = targets.some((el) => !builtElements.has(el));
+    if (!hasUnbuilt) {
+      builtSections.add(sectionId);
+      return;
+    }
+
+    builtSections.add(sectionId);
     wakeSwarm(1100);
 
     setTimeout(() => {
       if (!isElementInActiveView(body)) return;
-      const targets = body.querySelectorAll(
-        `${SELECTORS.containers}, ${SELECTORS.texts}, ${SELECTORS.images}`
-      );
       const bodyRect = body.getBoundingClientRect();
 
       targets.forEach((el) => {

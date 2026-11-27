@@ -1185,17 +1185,54 @@ body.view-section[data-active-section="contact"]      #section-contact {
   box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3);
 }
 
-.taskbar-start {
+.tb-nepali-widget {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 10px;
+  padding: 4px 8px;
+  border-radius: 6px;
   flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.tb-nepali-widget:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tb-nepali-day {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  padding: 3px 9px;
+  border-radius: 6px;
+}
+
+.tb-nepali-flag {
+  display: block;
+  flex-shrink: 0;
+}
+
+.tb-nepali-date {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .taskbar-center {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.taskbar-pins {
   display: flex;
   align-items: center;
   gap: 2px;
@@ -1438,8 +1475,8 @@ body.view-section[data-active-section="contact"]      #section-contact {
     grid-template-columns: 1fr;
   }
 
-  /* Hide taskbar center to save space */
-  .taskbar-center {
+  /* Hide pinned taskbar apps on small screens to save space, keep Windows + Search centered */
+  .taskbar-pins {
     display: none;
   }
 
@@ -1483,6 +1520,19 @@ body.view-section[data-active-section="contact"]      #section-contact {
 
   .section-body {
     padding: 16px 14px;
+  }
+
+  .tb-nepali-day {
+    display: none;
+  }
+
+  .tb-nepali-widget {
+    gap: 6px;
+    padding: 4px 6px;
+  }
+
+  .tb-nepali-date {
+    font-size: 11px;
   }
 
   .about-name {

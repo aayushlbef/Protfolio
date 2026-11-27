@@ -14,19 +14,21 @@ import * as THREE from 'three';
    CONFIGURATION
    ========================================================================== */
 const config = {
-  spotlightRadius: 0.32,
-  spotlightFeather: 0.26,
-  lerpSpeed: 0.06,
+  spotlightRadius: 0.30,
+  spotlightFeather: 0.12,
+  lerpSpeed: 14.0,
   particleCount: 140,
 };
 
 const state = {
-  mouseX: window.innerWidth * 0.7,
-  mouseY: window.innerHeight * 0.4,
-  normMouseX: 0.7,
-  normMouseY: 0.4,
-  targetUV: new THREE.Vector2(0.65, 0.55),
-  currentUV: new THREE.Vector2(0.65, 0.55),
+  mouseX: window.innerWidth * 0.5,
+  mouseY: window.innerHeight * 0.5,
+  normMouseX: 0.5,
+  normMouseY: 0.5,
+  targetUV: new THREE.Vector2(0.5, 0.5),
+  currentUV: new THREE.Vector2(0.5, 0.5),
+  targetActive: 0.0,
+  currentActive: 0.0,
 };
 
 /* ==========================================================================
@@ -101,7 +103,7 @@ export function initDesktopBackground() {
     u_radius: { value: config.spotlightRadius },
     u_feather: { value: config.spotlightFeather },
     u_time: { value: 0 },
-    u_active: { value: 1.0 },
+    u_active: { value: 0.0 },
   };
 
   const vertexShader = `
@@ -125,15 +127,24 @@ export function initDesktopBackground() {
     varying vec2 vUv;
 
     float softFalloff(float d, float r, float f) {
-      float t = clamp((d - (r - f)) / f, 0.0, 1.0);
+      float t = clamp((d - (r - f)) / max(f, 0.0001), 0.0, 1.0);
       return 1.0 - (t * t * (3.0 - 2.0 * t));
     }
 
     void main() {
-      float dist = distance(vUv, u_mouse);
-      float reveal = softFalloff(dist, u_radius, u_feather) * u_active;
-      float penumbra = softFalloff(dist, u_radius * 1.55, u_feather * 1.8) * 0.35;
-      float totalReveal = clamp(reveal + penumbra * (1.0 - reveal), 0.0, 1.0);
+      vec2 diff = vUv - u_mouse;
+      float dist = length(diff);
+      float angle = atan(diff.y, diff.x);
+
+      // Subtle organic energy ripple along the reveal perimeter
+      float wave = sin(angle * 3.0 - u_time * 2.4) * 0.0045
+                 + sin(angle * 7.0 + u_time * 1.8) * 0.0025;
+      float activeRadius = u_radius * mix(0.45, 1.0, u_active) + wave * u_active;
+
+      // Clean inner reveal + tight, controlled outer falloff
+      float reveal = softFalloff(dist, activeRadius, u_feather) * u_active;
+      float outerGlowMask = softFalloff(dist, activeRadius + u_feather * 0.45, u_feather * 0.7) * 0.14 * u_active;
+      float totalReveal = clamp(reveal + outerGlowMask * (1.0 - reveal), 0.0, 1.0);
 
       vec4 colMask   = texture2D(u_texMask,   vUv);
       vec4 colUnmask = texture2D(u_texUnmask, vUv);
@@ -143,15 +154,21 @@ export function initDesktopBackground() {
 
       vec4 baseColor = mix(colMask, colUnmask, totalReveal);
 
-      float shadowFactor = mix(0.82, 1.0, reveal);
-      float centreBright = (1.0 - smoothstep(0.0, u_radius * 0.75, dist)) * 0.10;
-      float brightness   = 1.0 + centreBright * reveal;
+      // Subtle depth contrast without washing out the revealed face
+      float shadowFactor = mix(0.88, 1.0, reveal);
 
-      float edgeDist  = abs(dist - (u_radius - u_feather * 0.4));
-      float edgeGlow  = (1.0 - smoothstep(0.0, u_feather * 0.9, edgeDist)) * 0.06 * reveal;
-      vec3  edgeColor = vec3(0.92, 0.96, 1.0) * edgeGlow;
+      // Subtle, transparent arc-reactor rim pushed to the outer edge
+      float ringCenter = activeRadius - u_feather * 0.15;
+      float ringDist   = abs(dist - ringCenter);
+      float ringCore   = exp(-pow(ringDist / max(u_feather * 0.16, 0.004), 2.0));
+      float ringHalo   = exp(-pow(ringDist / max(u_feather * 0.50, 0.008), 2.0));
+      float arcPulse   = 0.72 + 0.28 * sin(angle * 2.0 - u_time * 3.0);
 
-      baseColor.rgb *= shadowFactor * brightness;
+      vec3 cyanGlow = vec3(0.24, 0.78, 1.0) * ringHalo * 0.13;
+      vec3 coreGlow = vec3(0.86, 0.97, 1.0) * ringCore * 0.16 * arcPulse;
+      vec3 edgeColor = (cyanGlow + coreGlow) * u_active * smoothstep(0.0, 0.15, alpha);
+
+      baseColor.rgb *= shadowFactor;
       baseColor.rgb += edgeColor;
 
       float bottomFade = smoothstep(0.0, 0.12, vUv.y);
@@ -293,11 +310,17 @@ export function initDesktopBackground() {
     raycaster.ray.intersectPlane(mathPlane, hit);
 
     const half = pSize * 0.5;
-    state.targetUV.set(
-      (hit.x - (charMesh.position.x - half)) / pSize,
-      (hit.y - (charMesh.position.y - half)) / pSize
-    );
+    const u = (hit.x - (charMesh.position.x - half)) / pSize;
+    const v = (hit.y - (charMesh.position.y - half)) / pSize;
+    state.targetUV.set(u, v);
+
+    const inBounds = u >= -0.05 && u <= 1.05 && v >= -0.05 && v <= 1.05;
+    state.targetActive = inBounds ? 1.0 : 0.0;
   }
+
+  document.addEventListener('mouseleave', () => {
+    state.targetActive = 0.0;
+  });
 
   window.addEventListener('mousemove', (e) => onPointerMove(e.clientX, e.clientY), {
     passive: true,
@@ -336,17 +359,25 @@ export function initDesktopBackground() {
 
   /* ── Render loop ─────────────────────────────────────────────────────── */
   const clock = new THREE.Clock();
+  let lastTime = 0;
 
   function animate() {
     requestAnimationFrame(animate);
     if (document.hidden) return;
 
     const t = clock.getElapsedTime();
+    const dt = Math.min(t - lastTime, 0.05);
+    lastTime = t;
 
-    // Smooth torch interpolation
-    state.currentUV.x += (state.targetUV.x - state.currentUV.x) * config.lerpSpeed;
-    state.currentUV.y += (state.targetUV.y - state.currentUV.y) * config.lerpSpeed;
+    // Frame-rate-independent smooth torch interpolation
+    const followFactor = 1 - Math.exp(-config.lerpSpeed * dt);
+    const activeFactor = 1 - Math.exp(-8.0 * dt);
+    state.currentUV.x += (state.targetUV.x - state.currentUV.x) * followFactor;
+    state.currentUV.y += (state.targetUV.y - state.currentUV.y) * followFactor;
+    state.currentActive += (state.targetActive - state.currentActive) * activeFactor;
+
     characterUniforms.u_mouse.value.copy(state.currentUV);
+    characterUniforms.u_active.value = state.currentActive;
     characterUniforms.u_time.value = t;
 
     // Parallax tilt

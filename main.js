@@ -60,12 +60,52 @@ export function renderTaskbarPins() {
    3. TASKBAR CLOCK
    ========================================================================== */
 
+const BS_MONTHS_BY_YEAR = {
+  2081: [31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31],
+  2082: [31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30],
+  2083: [31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30],
+  2084: [31, 31, 32, 31, 31, 30, 30, 30, 29, 30, 30, 30],
+  2085: [31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30],
+};
+
+function formatBSDate(date) {
+  // Anchor: 2024-04-13 AD === 2081-01-01 BS
+  const anchorUTC = Date.UTC(2024, 3, 13);
+  const currentUTC = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  let remainingDays = Math.floor((currentUTC - anchorUTC) / 86400000);
+
+  if (remainingDays < 0) return '2083 / 08 / 10';
+
+  let bsYear = 2081;
+  while (BS_MONTHS_BY_YEAR[bsYear]) {
+    const months = BS_MONTHS_BY_YEAR[bsYear];
+    const yearDays = months.reduce((sum, d) => sum + d, 0);
+    if (remainingDays < yearDays) {
+      let bsMonth = 1;
+      for (const daysInMonth of months) {
+        if (remainingDays < daysInMonth) {
+          const bsDay = remainingDays + 1;
+          return `${bsYear} / ${String(bsMonth).padStart(2, '0')} / ${String(bsDay).padStart(2, '0')}`;
+        }
+        remainingDays -= daysInMonth;
+        bsMonth++;
+      }
+    }
+    remainingDays -= yearDays;
+    bsYear++;
+  }
+
+  return '2083 / 08 / 10';
+}
+
 export function startClock() {
   const tbClock = document.getElementById('tbClock');
-  if (!tbClock) return;
+  const nepaliDayEl = document.getElementById('tbNepaliDay');
+  const nepaliDateEl = document.getElementById('tbNepaliDate');
+  if (!tbClock && !nepaliDayEl && !nepaliDateEl) return;
 
-  const timeEl = tbClock.querySelector('.clock-time');
-  const dateEl = tbClock.querySelector('.clock-date');
+  const timeEl = tbClock ? tbClock.querySelector('.clock-time') : null;
+  const dateEl = tbClock ? tbClock.querySelector('.clock-date') : null;
 
   function update() {
     const now = new Date();
@@ -86,6 +126,8 @@ export function startClock() {
 
     if (timeEl) timeEl.textContent = timeStr;
     if (dateEl) dateEl.textContent = dateStr;
+    if (nepaliDayEl) nepaliDayEl.textContent = now.toLocaleDateString('en-US', { weekday: 'short' });
+    if (nepaliDateEl) nepaliDateEl.textContent = formatBSDate(now);
   }
 
   update();
